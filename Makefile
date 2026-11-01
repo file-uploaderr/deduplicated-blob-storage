@@ -14,13 +14,17 @@ auto-run/api:
 # ==================================================================================== #
 # DATABASE MIGRATIONS
 # ==================================================================================== #
-.PHONY:migrate/db
-migrate/db:
+.PHONY:migrate-up-all/db
+migrate-up-all/db:
 	migrate -path ./internal/database/migrations -database $(DATABASE_URL) up	
 
+.PHONY:migrate-down-all/db
+migrate-down-all/db:
+	migrate -path ./internal/database/migrations -database $(DATABASE_URL) down		
 
-.PHONY:migrate/create
-migrate/create:
+
+.PHONY:migrate-create/db
+migrate-create/db:
 	migrate create -seq -ext sql  -dir ./internal/database/migrations $(FILE_NAME)	
 
 

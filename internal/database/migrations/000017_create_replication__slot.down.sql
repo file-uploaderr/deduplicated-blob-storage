@@ -1,1 +1,1 @@
-select pg_drop_replication_slot('debezium_slot');
+-- select pg_drop_replication_slot('debezium_slot');

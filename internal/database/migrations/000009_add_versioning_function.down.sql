@@ -1,1 +1,0 @@
-drop function if exists bump_row_version() restrict;

@@ -1,2 +1,2 @@
-create or replace trigger bump_row_version before update on image_blob_upload_attempts
-for each row execute procedure bump_row_version();
+create or replace trigger bump_row_version_table_image_blob_upload_attempts before update on image_blob_upload_attempts
+for each row execute function bump_row_version_table_image_blob_upload_attempts();
