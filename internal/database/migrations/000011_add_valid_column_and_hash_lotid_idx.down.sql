@@ -1,3 +1,3 @@
-drop index if exists idx_unq_img_attmpts_sha256_lot_id_upload_state restrict;
+drop index if exists idx_unq_img_attmpts_sha256_upload_room_id_upload_state restrict;
 
 alter table image_blob_upload_attempts drop column valid_until;

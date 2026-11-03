@@ -1,0 +1,1 @@
+drop table if exists file_store.upload_rooms;

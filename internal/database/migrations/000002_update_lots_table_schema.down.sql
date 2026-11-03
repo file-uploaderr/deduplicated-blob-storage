@@ -1,1 +1,0 @@
-alter table lots drop column category, drop column bid_opening_price;

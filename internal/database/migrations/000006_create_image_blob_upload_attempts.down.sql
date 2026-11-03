@@ -1,7 +1,7 @@
 drop table if exists image_blob_upload_attempts;
 
-drop type upload_attempt_state;
+drop type if exists upload_attempt_state restrict;
 
-drop type upload_type;
+drop type if exists upload_type restrict;
 
 

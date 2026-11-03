@@ -16,9 +16,8 @@ part_count bigint generated always as (case
 	else null
 end) stored,
 
-lot_id uuid not null references lots(id) on
-delete
-	cascade,
+upload_room_id bigint not null references file_store.upload_rooms(id) on
+delete cascade,
 	filename varchar(250),
 	storage_key text not null,
 	username varchar(128) not null,

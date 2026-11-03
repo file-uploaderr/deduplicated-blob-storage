@@ -1,0 +1,1 @@
+create table file_store.upload_rooms(title varchar(260),description varchar(450),id bigint generated always as identity primary key);

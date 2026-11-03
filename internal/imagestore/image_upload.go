@@ -542,6 +542,7 @@ func (s3Storage s3Storage) listNotUploadedParts(ctx context.Context, uploadIdent
 
 type duplicateFile = uploadFile
 
+// todo duplicate files in batch upload are lost. Decide to keep or not to keep duplicate files.
 func intentBatchUpload(fileToUpload []uploadFile) ([]uploadFile, []duplicateFile) {
 	isSeenFileMap := make(map[string]bool, len(fileToUpload))
 	var duplicateFiles []duplicateFile
