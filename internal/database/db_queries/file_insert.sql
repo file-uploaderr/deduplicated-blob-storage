@@ -50,7 +50,7 @@ INSERT INTO image_blob_upload_attempts
                         upload_type,
                         lot_id,
                         file_name,
-                        username
+                        uploader_identity
             )
 SELECT Decode(i.sha256,'hex'),
        i.file_size,
@@ -71,7 +71,7 @@ do update  set storage_key=image_blob_upload_attempts.storage_key returning enco
 insert into image_blob_upload_attempts(
   sha256, file_size, content_type, upload_type, 
   upload_id, part_size, lot_id, file_name, 
-  username, storage_key
+  uploader_identity, storage_key
 ) 
 select 
   decode(i.sha256, 'hex') sha256, 

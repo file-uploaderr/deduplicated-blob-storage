@@ -18,7 +18,7 @@ end) stored,
 upload_room_id bigint not null references file_store.upload_rooms(id) on
 delete cascade,
 	storage_key text not null,
-	username varchar(128) not null,
+	uploader_identity varchar(128) not null,
 upload_state upload_config.upload_attempt_state not null default 'pending',
 version integer not null default 0
 );
