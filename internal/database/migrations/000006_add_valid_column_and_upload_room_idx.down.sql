@@ -1,0 +1,3 @@
+drop index if exists upload_config.idx_unq_img_attmpts_sha256_upload_room_id_upload_state restrict;
+
+alter table upload_config.image_blob_upload_attempts drop column valid_until;

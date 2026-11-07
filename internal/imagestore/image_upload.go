@@ -685,6 +685,7 @@ func skipUploadForIdenticalImageBlobs(ctx context.Context, files []uploadFile, l
 		fileMap[f.Sha256] = f
 	}
 
+	// todo check image_blobs table instead of lot_images table
 	identicalBlobs, err := query.InsertIdenticalImageBlobsToLotImages(ctx, filestore.InsertIdenticalImageBlobsToLotImagesParams{
 		Sha256s:   sha256s,
 		LotID:     lotId,

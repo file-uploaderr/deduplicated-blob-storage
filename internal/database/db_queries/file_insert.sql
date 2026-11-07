@@ -1,43 +1,43 @@
--- name: InsertIdenticalImageBlobsToLotImages :many
-WITH file_uploads
-     (
-          sha256,
-          file_name,
-          lot_id
-     )
-     AS
-     (
-            SELECT sha256,
-                   file_name,
-                   @lot_id::uuid
-            FROM   unnest(@sha256s::char(64)[],@file_names::varchar(250)[]) i(sha256,file_name)
-     )
-     ,
-     lot_image_inserts AS
-     (
-                 INSERT INTO lot_images
-                             (
-                                         lot_id,
-                                         image_blob_id,
-                                         file_name
-                             )
-                 SELECT file_uploads.lot_id,
-                        image_blobs.image_blob_id,
-                        file_uploads.file_name
-                 FROM   file_uploads
-                 JOIN   image_blobs
-                 ON     image_blobs.sha256 = decode(file_uploads.sha256, 'hex')
-                 WHERE  image_blobs.is_upload_completed returning lot_image_id,
-                        file_name,
-                        image_blob_id
-     )
-SELECT i.lot_image_id,
-       i.file_name,
-       i.image_blob_id,
-       encode(ib.sha256,'hex') sha256
-FROM   lot_image_inserts i
-JOIN   image_blobs ib
-ON     i.image_blob_id=ib.image_blob_id;
+-- name###: InsertIdenticalImageBlobsToLotImages :many
+-- WITH file_uploads
+--      (
+--           sha256,
+--           file_name,
+--           lot_id
+--      )
+--      AS
+--      (
+--             SELECT sha256,
+--                    file_name,
+--                    @lot_id::uuid
+--             FROM   unnest(@sha256s::char(64)[],@file_names::varchar(250)[]) i(sha256,file_name)
+--      )
+--      ,
+--      lot_image_inserts AS
+--      (
+--                  INSERT INTO lot_images
+--                              (
+--                                          lot_id,
+--                                          image_blob_id,
+--                                          file_name
+--                              )
+--                  SELECT file_uploads.lot_id,
+--                         image_blobs.image_blob_id,
+--                         file_uploads.file_name
+--                  FROM   file_uploads
+--                  JOIN   image_blobs
+--                  ON     image_blobs.sha256 = decode(file_uploads.sha256, 'hex')
+--                  WHERE  image_blobs.is_upload_completed returning lot_image_id,
+--                         file_name,
+--                         image_blob_id
+--      )
+-- SELECT i.lot_image_id,
+--        i.file_name,
+--        i.image_blob_id,
+--        encode(ib.sha256,'hex') sha256
+-- FROM   lot_image_inserts i
+-- JOIN   image_blobs ib
+-- ON     i.image_blob_id=ib.image_blob_id;
 
 
 

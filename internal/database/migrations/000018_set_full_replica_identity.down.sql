@@ -1,1 +1,0 @@
--- alter table public.image_blob_upload_attempts replica identity default;

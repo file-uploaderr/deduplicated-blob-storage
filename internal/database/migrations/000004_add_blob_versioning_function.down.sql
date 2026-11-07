@@ -1,0 +1,1 @@
+drop function if exists upload_config.bump_row_version_table_image_blob_upload_attempts() restrict;

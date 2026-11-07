@@ -1,1 +1,0 @@
-alter table lot_images rename filename to file_name;

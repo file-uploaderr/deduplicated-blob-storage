@@ -1,1 +1,0 @@
-alter table image_blob_upload_attempts rename file_name to filename;

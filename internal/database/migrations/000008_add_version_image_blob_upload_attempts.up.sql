@@ -1,1 +1,0 @@
-alter table image_blob_upload_attempts add column version integer not null default 0;

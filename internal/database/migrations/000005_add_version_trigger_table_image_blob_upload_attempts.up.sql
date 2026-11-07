@@ -1,0 +1,2 @@
+create or replace trigger bump_row_version_table_image_blob_upload_attempts before update on upload_config.image_blob_upload_attempts
+for each row execute function upload_config.bump_row_version_table_image_blob_upload_attempts();

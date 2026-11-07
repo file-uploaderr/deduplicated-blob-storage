@@ -1,1 +1,0 @@
-alter table image_blob_upload_attempts rename id to image_blob_upload_attempt_id;

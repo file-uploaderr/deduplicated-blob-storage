@@ -1,0 +1,1 @@
+-- alter table upload_config.image_blob_upload_attempts replica identity full;
