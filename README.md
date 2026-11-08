@@ -1,1 +1,1 @@
-# be-auction-item
+Deduplicated blob storage
