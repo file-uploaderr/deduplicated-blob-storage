@@ -22,14 +22,13 @@ type ImageStore struct {
 
 func (imageStore *ImageStore) CompleteMultiPartUpload(ctx context.Context, completeMultipartRequest *lotimage.CompleteMultiPartUploadRequest) (*lotimage.CompleteMultiPartUploadResponse, error) {
 	etagParts := convertToCompletedPart(completeMultipartRequest.PartEtags)
-	err := imageStore.completeMultiPartUpload(ctx, *completeMultipartRequest.MultipartAttemptId, "arn:aws:s3:ap-south-1:433154991296:accesspoint/auction-lot-service-access-point", etagParts)
+	blobID, err := imageStore.completeMultiPartUpload(ctx, *completeMultipartRequest.MultipartAttemptId, "arn:aws:s3:ap-south-1:433154991296:accesspoint/auction-lot-service-access-point", etagParts)
 	if err != nil {
 		return nil, err
 	}
 
 	return &lotimage.CompleteMultiPartUploadResponse{
-		Success: new(true),
-		Message: new("Upload Completed"),
+		BlobId: new(uint64(blobID)),
 	}, nil
 }
 
@@ -195,8 +194,8 @@ func convertToUploadFiles(imageFiles []*lotimage.File) []uploadFile {
 
 func convertToUploadFile(imageFile *lotimage.File) uploadFile {
 	uploadFile := uploadFile{
-		Sha256:       *imageFile.Sha256,
-		FileName:     *imageFile.FileName,
+		Sha256: *imageFile.Sha256,
+		// FileName:     *imageFile.FileName,
 		ClientFileId: strconv.Itoa(int(*imageFile.ClientFileId)),
 		FileSize:     uint(*imageFile.FileSize),
 	}
@@ -224,8 +223,8 @@ func convertToImageFile(file uploadFile) (*lotimage.File, error) {
 		return nil, apperror.InternalServerError(operation, fmt.Errorf("cannot convert client file id %s to integer:%w", file.ClientFileId, err), "internal error").MarkAsClientErr()
 	}
 	imageFile := &lotimage.File{
-		Sha256:       new(file.Sha256),
-		FileName:     new(file.FileName),
+		Sha256: new(file.Sha256),
+		// FileName:     new(file.FileName),
 		ClientFileId: new(int32(clientId)),
 		FileSize:     new(uint64(file.FileSize)),
 	}

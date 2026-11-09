@@ -1,2 +1,2 @@
--- name: CreateLot :one
--- insert into lots(title,description,category,bid_opening_price) values($1,$2,$3,$4) returning id;
+-- name: CreateUploadRoom :one
+insert into file_store.upload_rooms(title,description) values($1,$2) returning id;

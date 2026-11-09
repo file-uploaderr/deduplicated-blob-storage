@@ -7,29 +7,20 @@ package filestore
 
 import (
 	"context"
-
-	"github.com/google/uuid"
 )
 
-const createLot = `-- name: CreateLot :one
-insert into lots(title,description,category,bid_opening_price) values($1,$2,$3,$4) returning id
+const createUploadRoom = `-- name: CreateUploadRoom :one
+insert into file_store.upload_rooms(title,description) values($1,$2) returning id
 `
 
-type CreateLotParams struct {
-	Title           string
-	Description     string
-	Category        *string
-	BidOpeningPrice *int32
+type CreateUploadRoomParams struct {
+	Title       string
+	Description *string
 }
 
-func (q *Queries) CreateLot(ctx context.Context, arg CreateLotParams) (uuid.UUID, error) {
-	row := q.db.QueryRow(ctx, createLot,
-		arg.Title,
-		arg.Description,
-		arg.Category,
-		arg.BidOpeningPrice,
-	)
-	var id uuid.UUID
+func (q *Queries) CreateUploadRoom(ctx context.Context, arg CreateUploadRoomParams) (int64, error) {
+	row := q.db.QueryRow(ctx, createUploadRoom, arg.Title, arg.Description)
+	var id int64
 	err := row.Scan(&id)
 	return id, err
 }

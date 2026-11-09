@@ -23,13 +23,11 @@ const (
 )
 
 type UploadRoom struct {
-	state           protoimpl.MessageState `protogen:"open.v1"`
-	Title           *string                `protobuf:"bytes,1,opt,name=title" json:"title,omitempty"`
-	Description     *string                `protobuf:"bytes,2,opt,name=description" json:"description,omitempty"`
-	Category        *string                `protobuf:"bytes,3,opt,name=category" json:"category,omitempty"`
-	BidOpeningPrice *int32                 `protobuf:"varint,4,opt,name=bid_opening_price,json=bidOpeningPrice" json:"bid_opening_price,omitempty"`
-	unknownFields   protoimpl.UnknownFields
-	sizeCache       protoimpl.SizeCache
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Title         *string                `protobuf:"bytes,1,opt,name=title" json:"title,omitempty"`
+	Description   *string                `protobuf:"bytes,2,opt,name=description" json:"description,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
 }
 
 func (x *UploadRoom) Reset() {
@@ -74,20 +72,6 @@ func (x *UploadRoom) GetDescription() string {
 		return *x.Description
 	}
 	return ""
-}
-
-func (x *UploadRoom) GetCategory() string {
-	if x != nil && x.Category != nil {
-		return *x.Category
-	}
-	return ""
-}
-
-func (x *UploadRoom) GetBidOpeningPrice() int32 {
-	if x != nil && x.BidOpeningPrice != nil {
-		return *x.BidOpeningPrice
-	}
-	return 0
 }
 
 type CreateRoomResponse struct {
@@ -182,16 +166,12 @@ var File_lot_v1_lot_proto protoreflect.FileDescriptor
 
 const file_lot_v1_lot_proto_rawDesc = "" +
 	"\n" +
-	"\x10lot/v1/lot.proto\x12\x06lot.v1\x1a\x1bbuf/validate/validate.proto\"\xb0\x01\n" +
+	"\x10lot/v1/lot.proto\x12\x06lot.v1\x1a\x1bbuf/validate/validate.proto\"Y\n" +
 	"\n" +
 	"UploadRoom\x12 \n" +
 	"\x05title\x18\x01 \x01(\tB\n" +
-	"\xbaH\a\xc8\x01\x01r\x02\x10\x01R\x05title\x12,\n" +
-	"\vdescription\x18\x02 \x01(\tB\n" +
-	"\xbaH\a\xc8\x01\x01r\x02\x10\x01R\vdescription\x12&\n" +
-	"\bcategory\x18\x03 \x01(\tB\n" +
-	"\xbaH\a\xc8\x01\x01r\x02\x10\x01R\bcategory\x12*\n" +
-	"\x11bid_opening_price\x18\x04 \x01(\x05R\x0fbidOpeningPrice\"F\n" +
+	"\xbaH\a\xc8\x01\x01r\x02\x10\x01R\x05title\x12)\n" +
+	"\vdescription\x18\x02 \x01(\tB\a\xbaH\x04r\x02\x10\x01R\vdescription\"F\n" +
 	"\x12CreateRoomResponse\x12$\n" +
 	"\x0eupload_room_id\x18\x03 \x01(\x04R\fuploadRoomIdJ\x04\b\x01\x10\x02J\x04\b\x02\x10\x03\";\n" +
 	"\x11CreateRoomRequest\x12&\n" +

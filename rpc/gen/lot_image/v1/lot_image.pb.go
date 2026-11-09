@@ -23,10 +23,17 @@ const (
 )
 
 type File struct {
-	state    protoimpl.MessageState `protogen:"open.v1"`
-	Sha256   *string                `protobuf:"bytes,1,opt,name=sha256" json:"sha256,omitempty"`
-	FileName *string                `protobuf:"bytes,2,opt,name=file_name,json=fileName" json:"file_name,omitempty"`
-	// todo remove client_file_id later
+	state  protoimpl.MessageState `protogen:"open.v1"`
+	Sha256 *string                `protobuf:"bytes,1,opt,name=sha256" json:"sha256,omitempty"`
+	// string file_name = 2 [
+	//
+	//	(buf.validate.field).required = true,
+	//	(buf.validate.field).string.min_len = 3,
+	//	(buf.validate.field).string.max_len = 250
+	//
+	// ];
+	//
+	//	todo remove client_file_id later
 	ClientFileId  *int32  `protobuf:"varint,3,opt,name=client_file_id,json=clientFileId" json:"client_file_id,omitempty"`
 	FileSize      *uint64 `protobuf:"varint,4,opt,name=file_size,json=fileSize" json:"file_size,omitempty"`
 	unknownFields protoimpl.UnknownFields
@@ -66,13 +73,6 @@ func (*File) Descriptor() ([]byte, []int) {
 func (x *File) GetSha256() string {
 	if x != nil && x.Sha256 != nil {
 		return *x.Sha256
-	}
-	return ""
-}
-
-func (x *File) GetFileName() string {
-	if x != nil && x.FileName != nil {
-		return *x.FileName
 	}
 	return ""
 }
@@ -295,9 +295,10 @@ func (x *PartEtag) GetPart() uint32 {
 }
 
 type CompleteMultiPartUploadResponse struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Success       *bool                  `protobuf:"varint,1,opt,name=success" json:"success,omitempty"`
-	Message       *string                `protobuf:"bytes,2,opt,name=message" json:"message,omitempty"`
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// bool success = 1;
+	// string message = 2;
+	BlobId        *uint64 `protobuf:"varint,3,opt,name=blob_id,json=blobId" json:"blob_id,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -332,18 +333,11 @@ func (*CompleteMultiPartUploadResponse) Descriptor() ([]byte, []int) {
 	return file_lot_image_v1_lot_image_proto_rawDescGZIP(), []int{5}
 }
 
-func (x *CompleteMultiPartUploadResponse) GetSuccess() bool {
-	if x != nil && x.Success != nil {
-		return *x.Success
+func (x *CompleteMultiPartUploadResponse) GetBlobId() uint64 {
+	if x != nil && x.BlobId != nil {
+		return *x.BlobId
 	}
-	return false
-}
-
-func (x *CompleteMultiPartUploadResponse) GetMessage() string {
-	if x != nil && x.Message != nil {
-		return *x.Message
-	}
-	return ""
+	return 0
 }
 
 type PresignFileResult struct {
@@ -812,13 +806,11 @@ var File_lot_image_v1_lot_image_proto protoreflect.FileDescriptor
 
 const file_lot_image_v1_lot_image_proto_rawDesc = "" +
 	"\n" +
-	"\x1clot_image/v1/lot_image.proto\x12\flot_image.v1\x1a\x1bbuf/validate/validate.proto\"\xa7\x01\n" +
+	"\x1clot_image/v1/lot_image.proto\x12\flot_image.v1\x1a\x1bbuf/validate/validate.proto\"\x81\x01\n" +
 	"\x04File\x12#\n" +
-	"\x06sha256\x18\x01 \x01(\tB\v\xbaH\b\xc8\x01\x01r\x03\x98\x01@R\x06sha256\x12*\n" +
-	"\tfile_name\x18\x02 \x01(\tB\r\xbaH\n" +
-	"\xc8\x01\x01r\x05\x10\x03\x18\xfa\x01R\bfileName\x12$\n" +
+	"\x06sha256\x18\x01 \x01(\tB\v\xbaH\b\xc8\x01\x01r\x03\x98\x01@R\x06sha256\x12$\n" +
 	"\x0eclient_file_id\x18\x03 \x01(\x05R\fclientFileId\x12(\n" +
-	"\tfile_size\x18\x04 \x01(\x04B\v\xbaH\b2\x06\x18\x80\x80\x80\x80\x18R\bfileSize\"s\n" +
+	"\tfile_size\x18\x04 \x01(\x04B\v\xbaH\b2\x06\x18\x80\x80\x80\x80\x18R\bfileSizeJ\x04\b\x02\x10\x03\"s\n" +
 	"\x1bGeneratePresignedUrlRequest\x12(\n" +
 	"\x05files\x18\x01 \x03(\v2\x12.lot_image.v1.FileR\x05files\x12$\n" +
 	"\x0eupload_room_id\x18\x03 \x01(\x04R\fuploadRoomIdJ\x04\b\x02\x10\x03\"r\n" +
@@ -831,10 +823,9 @@ const file_lot_image_v1_lot_image_proto_rawDesc = "" +
 	"\bPartEtag\x12\x12\n" +
 	"\x04etag\x18\x01 \x01(\tR\x04etag\x12\x1e\n" +
 	"\x04part\x18\x02 \x01(\rB\n" +
-	"\xbaH\a*\x05\x18\x90N(\x01R\x04part\"U\n" +
-	"\x1fCompleteMultiPartUploadResponse\x12\x18\n" +
-	"\asuccess\x18\x01 \x01(\bR\asuccess\x12\x18\n" +
-	"\amessage\x18\x02 \x01(\tR\amessage\"\xe0\x01\n" +
+	"\xbaH\a*\x05\x18\x90N(\x01R\x04part\"F\n" +
+	"\x1fCompleteMultiPartUploadResponse\x12\x17\n" +
+	"\ablob_id\x18\x03 \x01(\x04R\x06blobIdJ\x04\b\x01\x10\x02J\x04\b\x02\x10\x03\"\xe0\x01\n" +
 	"\x11PresignFileResult\x12;\n" +
 	"\x0fduplicate_files\x18\x01 \x03(\v2\x12.lot_image.v1.FileR\x0eduplicateFiles\x12H\n" +
 	"\x16already_uploaded_files\x18\x02 \x03(\v2\x12.lot_image.v1.FileR\x14alreadyUploadedFiles\x12D\n" +

@@ -12,19 +12,25 @@ import (
 )
 
 const getMultiPartUploadItem = `-- name: GetMultiPartUploadItem :one
-select upload_id,storage_key,part_count from upload_config.image_blob_upload_attempts where id= $1
+select upload_id,storage_key,part_count,id from upload_config.image_blob_upload_attempts where id= $1
 `
 
 type GetMultiPartUploadItemRow struct {
 	UploadID   *string
 	StorageKey uuid.UUID
 	PartCount  *int64
+	ID         int64
 }
 
 func (q *Queries) GetMultiPartUploadItem(ctx context.Context, multipartAttemptID int64) (GetMultiPartUploadItemRow, error) {
 	row := q.db.QueryRow(ctx, getMultiPartUploadItem, multipartAttemptID)
 	var i GetMultiPartUploadItemRow
-	err := row.Scan(&i.UploadID, &i.StorageKey, &i.PartCount)
+	err := row.Scan(
+		&i.UploadID,
+		&i.StorageKey,
+		&i.PartCount,
+		&i.ID,
+	)
 	return i, err
 }
 

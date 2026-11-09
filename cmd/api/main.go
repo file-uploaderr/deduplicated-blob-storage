@@ -65,8 +65,8 @@ func Run(port int, rpc Rpc) error {
 	}
 
 	grpcServer := grpc.NewServer(opts...)
-	lotPb.RegisterLotServiceServer(grpcServer, rpc.lotServer)
-	lotimage.RegisterLotImageServiceServer(grpcServer, rpc.imageStore)
+	lotPb.RegisterUploadRoomServiceServer(grpcServer, rpc.lotServer)
+	lotimage.RegisterFileUploadServiceServer(grpcServer, rpc.imageStore)
 
 	fmt.Println("Listening...")
 

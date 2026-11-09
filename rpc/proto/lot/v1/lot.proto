@@ -11,15 +11,7 @@ message UploadRoom {
     (buf.validate.field).string.min_len = 1,
     (buf.validate.field).required = true
   ];
-  string description = 2 [
-    (buf.validate.field).string.min_len = 1,
-    (buf.validate.field).required = true
-  ];
-  string category = 3 [
-    (buf.validate.field).string.min_len = 1,
-    (buf.validate.field).required = true
-  ];
-  int32 bid_opening_price = 4;
+  string description = 2 [(buf.validate.field).string.min_len = 1];
 }
 
 service UploadRoomService {

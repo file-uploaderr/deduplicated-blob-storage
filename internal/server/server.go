@@ -4,32 +4,27 @@ import (
 	"context"
 	"fmt"
 
-	"buf.build/go/protovalidate"
+	"github.com/Auction-Application/be-auction-item/internal/apperror"
 	"github.com/Auction-Application/be-auction-item/internal/database/filestore"
 	lotPb "github.com/Auction-Application/be-auction-item/rpc/gen/lot/v1"
+	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/jackc/pgx/v5"
-	"google.golang.org/grpc/codes"
-	"google.golang.org/grpc/status"
 )
 
 type LotServer struct {
-	lotPb.UnimplementedLotServiceServer
+	lotPb.UnimplementedUploadRoomServiceServer
 	dbStorageQuery *filestore.Queries
 	conn           *pgx.Conn
 }
 
-func (s *LotServer) CreateLot(ctx context.Context, req *lotPb.CreateLotRequest) (*lotPb.CreateLotResponse, error) {
-	if err := protovalidate.Validate(req); err != nil {
-		return nil, status.Error(codes.InvalidArgument, "invalid lot payload")
-	}
-
-	id, err := s.dbStorageQuery.CreateLot(ctx, filestore.CreateLotParams{Title: *req.Lot.LotTitle, Description: *req.Lot.Description, Category: req.Lot.Category, BidOpeningPrice: req.Lot.BidOpeningPrice})
+func (s *LotServer) CreateRoom(ctx context.Context, req *lotPb.CreateRoomRequest) (*lotPb.CreateRoomResponse, error) {
+	const operation apperror.Operation = "server.CreateRoom"
+	id, err := s.dbStorageQuery.CreateUploadRoom(ctx, filestore.CreateUploadRoomParams{Title: *req.Room.Title, Description: req.Room.Description})
 	if err != nil {
-		fmt.Println(err)
-		return nil, status.Error(codes.Internal, "error creating lot")
+		return nil, apperror.InternalServerError(operation, fmt.Errorf("creation of upload room failed,%w", err), "internal error").MarkAsClientErr()
 	}
 
-	return &lotPb.CreateLotResponse{Success: new(true), Message: new("Lot Created"), LotId: new(id.String())}, nil
+	return &lotPb.CreateRoomResponse{UploadRoomId: aws.Uint64(uint64(id))}, nil
 }
 
 func NewLotServer(databaseConnection *pgx.Conn) *LotServer {

@@ -10,6 +10,7 @@ import (
 
 	"github.com/Auction-Application/be-auction-item/internal/apperror"
 	"github.com/Auction-Application/be-auction-item/internal/database"
+	dberrorbridge "github.com/Auction-Application/be-auction-item/internal/database/db_errorbridge"
 	"github.com/Auction-Application/be-auction-item/internal/database/filestore"
 	"github.com/aws/aws-sdk-go-v2/aws"
 	v4 "github.com/aws/aws-sdk-go-v2/aws/signer/v4"
@@ -46,8 +47,8 @@ func newS3Storage(bucketName string) (*s3Storage, error) {
 }
 
 type uploadFile struct {
-	Sha256       string
-	FileName     string
+	Sha256 string
+	// FileName     string
 	ClientFileId string
 	FileSize     uint
 }
@@ -148,7 +149,7 @@ func (s3Storage s3Storage) createMultipartPresignedFileUrl(ctx context.Context,
 			return nil, apperror.InternalServerError(operation, fmt.Errorf("insert and validation of multipart upload failed,%w", err), "internal error").MarkAsClientErr()
 		}
 		return nil, apperror.PreconditionFailedError(operation, apperror.ErrDetails{
-			Fields:  convertToFieldErr(errFields),
+			Fields:  dberrorbridge.ConvertToFieldErr(errFields),
 			Message: "unknown lotId",
 		}, err).MarkAsClientErr()
 	}
@@ -179,8 +180,8 @@ func (s3Storage s3Storage) createSinglePresignedFileUrl(ctx context.Context,
 		filestore.InsertSinglePartUploadParams{
 			UploadType: filestore.UploadConfigUploadTypeSingleUpload,
 			// LotID:        lotId,
-			// todo fix this
-			UploadRoomID:     12,
+			// todo can uploadRoomId be larger than int64???
+			UploadRoomID:     int64(uploadRoomId),
 			UploaderIdentity: "coackroach",
 			Sha256s:          singleFileData.singlePartFileSha256s,
 			FileSizes:        singleFileData.singlePartFileSizes,
@@ -193,7 +194,7 @@ func (s3Storage s3Storage) createSinglePresignedFileUrl(ctx context.Context,
 			return nil, apperror.InternalServerError(operation, fmt.Errorf("insertion of singlepart upload failed,%w", err), "internal error").MarkAsClientErr()
 		}
 		return nil, apperror.PreconditionFailedError(operation, apperror.ErrDetails{
-			Fields:  convertToFieldErr(errFields),
+			Fields:  dberrorbridge.ConvertToFieldErr(errFields),
 			Message: "storage error",
 		}, err).MarkAsClientErr()
 	}
@@ -254,8 +255,8 @@ func (s3Storage s3Storage) extractFileData(ctx context.Context, files []uploadFi
 
 	multipartFileSha256s := make([]string, 0)
 	multipartFileSizes := make([]int64, 0)
-	multipartFileContentTypes := make([]string, 0)
-	multipartFileNames := make([]string, 0)
+	// multipartFileContentTypes := make([]string, 0)
+	// multipartFileNames := make([]string, 0)
 	multipartFileStorageKeys := make([]uuid.UUID, 0)
 	multipartFileUploadIds := make([]string, 0)
 	for _, file := range files {
@@ -264,13 +265,13 @@ func (s3Storage s3Storage) extractFileData(ctx context.Context, files []uploadFi
 			singleFileSha256s = append(singleFileSha256s, file.Sha256)
 			singleFileSizes = append(singleFileSizes, int64(file.FileSize))
 			singleFileContentTypes = append(singleFileContentTypes, "image/jpeg")
-			singleFileNames = append(singleFileNames, file.FileName)
+			// singleFileNames = append(singleFileNames, file.FileName)
 
 		} else {
 			multiFileUploadMap[file.Sha256] = file
 			multipartFileSha256s = append(multipartFileSha256s, file.Sha256)
-			multipartFileContentTypes = append(multipartFileContentTypes, "image/jpeg")
-			multipartFileNames = append(multipartFileNames, file.FileName)
+			// multipartFileContentTypes = append(multipartFileContentTypes, "image/jpeg")
+			// multipartFileNames = append(multipartFileNames, file.FileName)
 			multipartFileSizes = append(multipartFileSizes, int64(file.FileSize))
 			generatedUUID, err := makeUUIDText()
 			if err != nil {
@@ -571,15 +572,15 @@ func intentBatchUpload(fileToUpload []uploadFile) ([]uploadFile, []duplicateFile
 
 func (imageStore *ImageStore) completeMultiPartUpload(ctx context.Context, multipartAttemptId int64,
 	bucketName string, etagParts []types.CompletedPart,
-) error {
+) (int64, error) {
 	const operation apperror.Operation = "imagestore.completeMultiPartUpload"
 	multipartItem, err := imageStore.dbStorageQuery.GetMultiPartUploadItem(ctx, multipartAttemptId)
 	if err != nil {
 		if database.IsRowNotFound(err) {
-			return apperror.NotFoundError(operation, fmt.Errorf("multipart attempt id %d not found:%w", multipartAttemptId, err),
+			return 0, apperror.NotFoundError(operation, fmt.Errorf("multipart attempt id %d not found:%w", multipartAttemptId, err),
 				fmt.Sprintf("multipart attempt Id %d could not be found", multipartAttemptId)).MarkAsClientErr()
 		}
-		return apperror.InternalServerError(operation,
+		return 0, apperror.InternalServerError(operation,
 			fmt.Errorf("cannot get multipart attempt id %d:%w", multipartAttemptId, err),
 			"internal error").MarkAsClientErr()
 	}
@@ -594,13 +595,13 @@ func (imageStore *ImageStore) completeMultiPartUpload(ctx context.Context, multi
 		UploadId: multipartItem.UploadID,
 	})
 	if err != nil {
-		return apperror.InternalServerError(operation,
+		return 0, apperror.InternalServerError(operation,
 			fmt.Errorf("cannot get uploaded image parts of key %s and bucket %s:%w",
 				multipartItem.StorageKey.String(), bucketName, err), "internal error").MarkAsClientErr()
 	}
 
 	if len(partOutput.Parts) != int(*multipartItem.PartCount) {
-		return apperror.PreconditionFailedError(
+		return 0, apperror.PreconditionFailedError(
 			operation,
 			apperror.ErrDetails{
 				Fields: []apperror.FieldError{{
@@ -628,7 +629,7 @@ func (imageStore *ImageStore) completeMultiPartUpload(ctx context.Context, multi
 		apperror.InternalServerError(operation, fmt.Errorf("cannot complete multipart upload;%w", err), "internal error").MarkAsClientErr()
 	}
 
-	return nil
+	return multipartItem.ID, nil
 }
 
 type uploadFileRequestResult struct {
@@ -684,12 +685,12 @@ type alreadyUploadedFile = uploadFile
 func skipUploadForIdenticalImageBlobs(ctx context.Context, files []uploadFile, uploadRoomId uint64, query *filestore.Queries) ([]uploadFile, []alreadyUploadedFile, error) {
 	const operation apperror.Operation = "imagestore.skipUploadForIdenticalImageBlobs"
 	sha256s := make([]string, 0, len(files))
-	fileNames := make([]string, 0, len(files))
+	// fileNames := make([]string, 0, len(files))
 
 	fileMap := make(map[string]uploadFile, len(files))
 	for _, f := range files {
 		sha256s = append(sha256s, f.Sha256)
-		fileNames = append(fileNames, f.FileName)
+		// fileNames = append(fileNames, f.FileName)
 		fileMap[f.Sha256] = f
 	}
 
@@ -710,7 +711,7 @@ func skipUploadForIdenticalImageBlobs(ctx context.Context, files []uploadFile, u
 		}
 
 		return nil, nil, apperror.PreconditionFailedError(operation, apperror.ErrDetails{
-			Fields:  convertToFieldErr(errFields),
+			Fields:  dberrorbridge.ConvertToFieldErr(errFields),
 			Message: "internal error",
 		}, err).MarkAsClientErr()
 	}

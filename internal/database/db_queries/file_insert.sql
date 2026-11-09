@@ -71,7 +71,7 @@ coalesce(old.valid_until >=Now(),false)::boolean as is_valid;
 
 
 -- name: GetMultiPartUploadItem :one
-select upload_id,storage_key,part_count from upload_config.image_blob_upload_attempts where id= sqlc.arg(multipart_attempt_id);
+select upload_id,storage_key,part_count,id from upload_config.image_blob_upload_attempts where id= sqlc.arg(multipart_attempt_id);
 
 
 
