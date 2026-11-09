@@ -1,4 +1,4 @@
-package imagestore
+package blobstore
 
 import (
 	"context"
@@ -13,14 +13,14 @@ import (
 	"github.com/jackc/pgx/v5"
 )
 
-type ImageStore struct {
+type BlobStore struct {
 	uploadFile.UnimplementedFileUploadServiceServer
 	dbStorageQuery *filestore.Queries
 	s3Storage      *s3Storage
 	conn           *pgx.Conn
 }
 
-func (imageStore *ImageStore) CompleteMultiPartUpload(ctx context.Context, completeMultipartRequest *uploadFile.CompleteMultiPartUploadRequest) (*uploadFile.CompleteMultiPartUploadResponse, error) {
+func (imageStore *BlobStore) CompleteMultiPartUpload(ctx context.Context, completeMultipartRequest *uploadFile.CompleteMultiPartUploadRequest) (*uploadFile.CompleteMultiPartUploadResponse, error) {
 	etagParts := convertToCompletedPart(completeMultipartRequest.PartEtags)
 	blobID, err := imageStore.completeMultiPartUpload(ctx, *completeMultipartRequest.MultipartAttemptId, "arn:aws:s3:ap-south-1:433154991296:accesspoint/auction-lot-service-access-point", etagParts)
 	if err != nil {
@@ -44,7 +44,7 @@ func convertToCompletedPart(wireFormatEtagParts []*uploadFile.PartEtag) []types.
 	return etagParts
 }
 
-func (imageStore *ImageStore) GeneratePresignedUrl(ctx context.Context, presignRequest *uploadFile.GeneratePresignedUrlRequest) (*uploadFile.GeneratePresignedUrlResponse, error) {
+func (imageStore *BlobStore) GeneratePresignedUrl(ctx context.Context, presignRequest *uploadFile.GeneratePresignedUrlRequest) (*uploadFile.GeneratePresignedUrlResponse, error) {
 	uploadfileRequestResult, err := imageStore.initiateUpload(ctx, convertToUploadFiles(presignRequest.Files), *presignRequest.UploadRoomId)
 	if err != nil {
 		return nil, err
@@ -217,7 +217,7 @@ func convertToImageFiles(files []fileUploadData) ([]*uploadFile.File, error) {
 }
 
 func convertToImageFile(file fileUploadData) (*uploadFile.File, error) {
-	const operation apperror.Operation = "imagestore.convertToImageFile"
+	const operation apperror.Operation = "blobstore.convertToImageFile"
 	clientId, err := strconv.Atoi(file.ClientFileId)
 	if err != nil {
 		return nil, apperror.InternalServerError(operation, fmt.Errorf("cannot convert client file id %s to integer:%w", file.ClientFileId, err), "internal error").MarkAsClientErr()
@@ -233,14 +233,14 @@ func convertToImageFile(file fileUploadData) (*uploadFile.File, error) {
 
 const bucketName = "arn:aws:s3:ap-south-1:433154991296:accesspoint/auction-lot-service-access-point"
 
-func NewImageStore(databaseConnection *pgx.Conn) *ImageStore {
+func NewImageStore(databaseConnection *pgx.Conn) *BlobStore {
 	s3Storage, err := newS3Storage(bucketName)
 	if err != nil {
 		fmt.Println("Error creating s3Storage")
 		fmt.Println(err)
 		return nil
 	}
-	return &ImageStore{
+	return &BlobStore{
 		dbStorageQuery: filestore.New(databaseConnection),
 		s3Storage:      s3Storage,
 		conn:           databaseConnection,

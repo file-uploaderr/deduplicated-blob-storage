@@ -1,4 +1,4 @@
-package imagestore
+package blobstore
 
 import (
 	"context"
@@ -124,7 +124,7 @@ func (s3Storage s3Storage) generateS3UploadUrl(ctx context.Context, files []file
 func (s3Storage s3Storage) createMultipartPresignedFileUrl(ctx context.Context,
 	uploadRoomId uint64, query *filestore.Queries, multipartFileData multipartFileData,
 ) ([]presignedFileUrl, error) {
-	const operation apperror.Operation = "imagestore.createMultipartPresignedFileUrl"
+	const operation apperror.Operation = "blobstore.createMultipartPresignedFileUrl"
 	multipartPresignedFileUrls := make([]presignedFileUrl, 0)
 
 	multiUploadResult, err := query.InsertAndValidateMultiPartUpload(
@@ -570,10 +570,10 @@ func intentBatchUpload(fileToUpload []fileUploadData) ([]fileUploadData, []dupli
 	return files, duplicateFiles
 }
 
-func (imageStore *ImageStore) completeMultiPartUpload(ctx context.Context, multipartAttemptId int64,
+func (imageStore *BlobStore) completeMultiPartUpload(ctx context.Context, multipartAttemptId int64,
 	bucketName string, etagParts []types.CompletedPart,
 ) (int64, error) {
-	const operation apperror.Operation = "imagestore.completeMultiPartUpload"
+	const operation apperror.Operation = "blobstore.completeMultiPartUpload"
 	multipartItem, err := imageStore.dbStorageQuery.GetMultiPartUploadItem(ctx, multipartAttemptId)
 	if err != nil {
 		if database.IsRowNotFound(err) {
@@ -638,7 +638,7 @@ type uploadFileRequestResult struct {
 	presignedFileUrls    []presignedFileUrl
 }
 
-func (imageStore *ImageStore) initiateUpload(ctx context.Context, fileToUpload []fileUploadData, uploadRoomId uint64) (uploadFileRequestResult, error) {
+func (imageStore *BlobStore) initiateUpload(ctx context.Context, fileToUpload []fileUploadData, uploadRoomId uint64) (uploadFileRequestResult, error) {
 	const operation apperror.Operation = "imageStore.initiateUpload"
 	files, duplicateFiles := intentBatchUpload(fileToUpload)
 	// uploadRoomId,ok:=new(big.Int).SetString(uploadRoomIdString,10)
@@ -661,7 +661,7 @@ func (imageStore *ImageStore) initiateUpload(ctx context.Context, fileToUpload [
 	}
 	defer tx.Rollback(ctx)
 	qtx := imageStore.dbStorageQuery.WithTx(tx)
-	needToBeUploadFiles, alreadyUploadedFiles, err := skipUploadForIdenticalImageBlobs(ctx, files, uploadRoomId, qtx)
+	needToBeUploadFiles, alreadyUploadedFiles, err := skipUploadForIdenticalImageBlobs(ctx, files, qtx)
 	if err != nil {
 		return uploadFileRequestResult{}, err
 	}
@@ -682,8 +682,8 @@ func (imageStore *ImageStore) initiateUpload(ctx context.Context, fileToUpload [
 
 type alreadyUploadedFile = fileUploadData
 
-func skipUploadForIdenticalImageBlobs(ctx context.Context, files []fileUploadData, uploadRoomId uint64, query *filestore.Queries) ([]fileUploadData, []alreadyUploadedFile, error) {
-	const operation apperror.Operation = "imagestore.skipUploadForIdenticalImageBlobs"
+func skipUploadForIdenticalImageBlobs(ctx context.Context, files []fileUploadData, query *filestore.Queries) ([]fileUploadData, []alreadyUploadedFile, error) {
+	const operation apperror.Operation = "blobstore.skipUploadForIdenticalImageBlobs"
 	sha256s := make([]string, 0, len(files))
 	// fileNames := make([]string, 0, len(files))
 

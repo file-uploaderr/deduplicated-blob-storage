@@ -5,8 +5,8 @@ import (
 	"net"
 
 	"buf.build/go/protovalidate"
+	"github.com/Auction-Application/be-auction-item/internal/blobstore"
 	"github.com/Auction-Application/be-auction-item/internal/database"
-	"github.com/Auction-Application/be-auction-item/internal/imagestore"
 	"github.com/Auction-Application/be-auction-item/internal/server"
 	"github.com/Auction-Application/be-auction-item/internal/valid"
 	uploadFile "github.com/Auction-Application/be-auction-item/rpc/gen/upload_file/v1"
@@ -34,14 +34,14 @@ func main() {
 
 type Rpc struct {
 	lotServer  *server.LotServer
-	imageStore *imagestore.ImageStore
+	imageStore *blobstore.BlobStore
 }
 
 func createRpc() Rpc {
 	databaseConnection := database.ConnectToDB()
 	rpc := Rpc{
 		lotServer:  server.NewLotServer(databaseConnection),
-		imageStore: imagestore.NewImageStore(databaseConnection),
+		imageStore: blobstore.NewImageStore(databaseConnection),
 	}
 	return rpc
 }
