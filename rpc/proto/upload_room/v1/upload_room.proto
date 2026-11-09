@@ -1,10 +1,10 @@
 edition = "2023";
 
-package lot.v1;
+package upload_room.v1;
 
 import "buf/validate/validate.proto";
 
-option go_package = ".;lotPb";
+option go_package = ".;uploadRoom";
 
 message UploadRoom {
   string title = 1 [

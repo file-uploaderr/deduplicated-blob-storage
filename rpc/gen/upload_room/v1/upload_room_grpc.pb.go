@@ -2,9 +2,9 @@
 // versions:
 // - protoc-gen-go-grpc v1.5.1
 // - protoc             (unknown)
-// source: lot/v1/lot.proto
+// source: upload_room/v1/upload_room.proto
 
-package lotPb
+package uploadRoom
 
 import (
 	context "context"
@@ -19,7 +19,7 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	UploadRoomService_CreateRoom_FullMethodName = "/lot.v1.UploadRoomService/CreateRoom"
+	UploadRoomService_CreateRoom_FullMethodName = "/upload_room.v1.UploadRoomService/CreateRoom"
 )
 
 // UploadRoomServiceClient is the client API for UploadRoomService service.
@@ -108,7 +108,7 @@ func _UploadRoomService_CreateRoom_Handler(srv interface{}, ctx context.Context,
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
 var UploadRoomService_ServiceDesc = grpc.ServiceDesc{
-	ServiceName: "lot.v1.UploadRoomService",
+	ServiceName: "upload_room.v1.UploadRoomService",
 	HandlerType: (*UploadRoomServiceServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
@@ -117,5 +117,5 @@ var UploadRoomService_ServiceDesc = grpc.ServiceDesc{
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
-	Metadata: "lot/v1/lot.proto",
+	Metadata: "upload_room/v1/upload_room.proto",
 }

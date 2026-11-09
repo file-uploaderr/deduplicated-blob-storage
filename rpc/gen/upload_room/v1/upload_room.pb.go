@@ -2,9 +2,9 @@
 // versions:
 // 	protoc-gen-go v1.36.6
 // 	protoc        (unknown)
-// source: lot/v1/lot.proto
+// source: upload_room/v1/upload_room.proto
 
-package lotPb
+package uploadRoom
 
 import (
 	_ "buf.build/gen/go/bufbuild/protovalidate/protocolbuffers/go/buf/validate"
@@ -32,7 +32,7 @@ type UploadRoom struct {
 
 func (x *UploadRoom) Reset() {
 	*x = UploadRoom{}
-	mi := &file_lot_v1_lot_proto_msgTypes[0]
+	mi := &file_upload_room_v1_upload_room_proto_msgTypes[0]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -44,7 +44,7 @@ func (x *UploadRoom) String() string {
 func (*UploadRoom) ProtoMessage() {}
 
 func (x *UploadRoom) ProtoReflect() protoreflect.Message {
-	mi := &file_lot_v1_lot_proto_msgTypes[0]
+	mi := &file_upload_room_v1_upload_room_proto_msgTypes[0]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -57,7 +57,7 @@ func (x *UploadRoom) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UploadRoom.ProtoReflect.Descriptor instead.
 func (*UploadRoom) Descriptor() ([]byte, []int) {
-	return file_lot_v1_lot_proto_rawDescGZIP(), []int{0}
+	return file_upload_room_v1_upload_room_proto_rawDescGZIP(), []int{0}
 }
 
 func (x *UploadRoom) GetTitle() string {
@@ -83,7 +83,7 @@ type CreateRoomResponse struct {
 
 func (x *CreateRoomResponse) Reset() {
 	*x = CreateRoomResponse{}
-	mi := &file_lot_v1_lot_proto_msgTypes[1]
+	mi := &file_upload_room_v1_upload_room_proto_msgTypes[1]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -95,7 +95,7 @@ func (x *CreateRoomResponse) String() string {
 func (*CreateRoomResponse) ProtoMessage() {}
 
 func (x *CreateRoomResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_lot_v1_lot_proto_msgTypes[1]
+	mi := &file_upload_room_v1_upload_room_proto_msgTypes[1]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -108,7 +108,7 @@ func (x *CreateRoomResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreateRoomResponse.ProtoReflect.Descriptor instead.
 func (*CreateRoomResponse) Descriptor() ([]byte, []int) {
-	return file_lot_v1_lot_proto_rawDescGZIP(), []int{1}
+	return file_upload_room_v1_upload_room_proto_rawDescGZIP(), []int{1}
 }
 
 func (x *CreateRoomResponse) GetUploadRoomId() uint64 {
@@ -127,7 +127,7 @@ type CreateRoomRequest struct {
 
 func (x *CreateRoomRequest) Reset() {
 	*x = CreateRoomRequest{}
-	mi := &file_lot_v1_lot_proto_msgTypes[2]
+	mi := &file_upload_room_v1_upload_room_proto_msgTypes[2]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -139,7 +139,7 @@ func (x *CreateRoomRequest) String() string {
 func (*CreateRoomRequest) ProtoMessage() {}
 
 func (x *CreateRoomRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_lot_v1_lot_proto_msgTypes[2]
+	mi := &file_upload_room_v1_upload_room_proto_msgTypes[2]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -152,7 +152,7 @@ func (x *CreateRoomRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreateRoomRequest.ProtoReflect.Descriptor instead.
 func (*CreateRoomRequest) Descriptor() ([]byte, []int) {
-	return file_lot_v1_lot_proto_rawDescGZIP(), []int{2}
+	return file_upload_room_v1_upload_room_proto_rawDescGZIP(), []int{2}
 }
 
 func (x *CreateRoomRequest) GetRoom() *UploadRoom {
@@ -162,48 +162,47 @@ func (x *CreateRoomRequest) GetRoom() *UploadRoom {
 	return nil
 }
 
-var File_lot_v1_lot_proto protoreflect.FileDescriptor
+var File_upload_room_v1_upload_room_proto protoreflect.FileDescriptor
 
-const file_lot_v1_lot_proto_rawDesc = "" +
+const file_upload_room_v1_upload_room_proto_rawDesc = "" +
 	"\n" +
-	"\x10lot/v1/lot.proto\x12\x06lot.v1\x1a\x1bbuf/validate/validate.proto\"Y\n" +
+	" upload_room/v1/upload_room.proto\x12\x0eupload_room.v1\x1a\x1bbuf/validate/validate.proto\"Y\n" +
 	"\n" +
 	"UploadRoom\x12 \n" +
 	"\x05title\x18\x01 \x01(\tB\n" +
 	"\xbaH\a\xc8\x01\x01r\x02\x10\x01R\x05title\x12)\n" +
 	"\vdescription\x18\x02 \x01(\tB\a\xbaH\x04r\x02\x10\x01R\vdescription\"F\n" +
 	"\x12CreateRoomResponse\x12$\n" +
-	"\x0eupload_room_id\x18\x03 \x01(\x04R\fuploadRoomIdJ\x04\b\x01\x10\x02J\x04\b\x02\x10\x03\";\n" +
-	"\x11CreateRoomRequest\x12&\n" +
-	"\x04room\x18\x01 \x01(\v2\x12.lot.v1.UploadRoomR\x04room2X\n" +
-	"\x11UploadRoomService\x12C\n" +
+	"\x0eupload_room_id\x18\x03 \x01(\x04R\fuploadRoomIdJ\x04\b\x01\x10\x02J\x04\b\x02\x10\x03\"C\n" +
+	"\x11CreateRoomRequest\x12.\n" +
+	"\x04room\x18\x01 \x01(\v2\x1a.upload_room.v1.UploadRoomR\x04room2h\n" +
+	"\x11UploadRoomService\x12S\n" +
 	"\n" +
-	"CreateRoom\x12\x19.lot.v1.CreateRoomRequest\x1a\x1a.lot.v1.CreateRoomResponseBX\n" +
-	"\n" +
-	"com.lot.v1B\bLotProtoP\x01Z\a.;lotPb\xa2\x02\x03LXX\xaa\x02\x06Lot.V1\xca\x02\x06Lot\\V1\xe2\x02\x12Lot\\V1\\GPBMetadata\xea\x02\aLot::V1b\beditionsp\xe8\a"
+	"CreateRoom\x12!.upload_room.v1.CreateRoomRequest\x1a\".upload_room.v1.CreateRoomResponseB\x88\x01\n" +
+	"\x12com.upload_room.v1B\x0fUploadRoomProtoP\x01Z\f.;uploadRoom\xa2\x02\x03UXX\xaa\x02\rUploadRoom.V1\xca\x02\rUploadRoom\\V1\xe2\x02\x19UploadRoom\\V1\\GPBMetadata\xea\x02\x0eUploadRoom::V1b\beditionsp\xe8\a"
 
 var (
-	file_lot_v1_lot_proto_rawDescOnce sync.Once
-	file_lot_v1_lot_proto_rawDescData []byte
+	file_upload_room_v1_upload_room_proto_rawDescOnce sync.Once
+	file_upload_room_v1_upload_room_proto_rawDescData []byte
 )
 
-func file_lot_v1_lot_proto_rawDescGZIP() []byte {
-	file_lot_v1_lot_proto_rawDescOnce.Do(func() {
-		file_lot_v1_lot_proto_rawDescData = protoimpl.X.CompressGZIP(unsafe.Slice(unsafe.StringData(file_lot_v1_lot_proto_rawDesc), len(file_lot_v1_lot_proto_rawDesc)))
+func file_upload_room_v1_upload_room_proto_rawDescGZIP() []byte {
+	file_upload_room_v1_upload_room_proto_rawDescOnce.Do(func() {
+		file_upload_room_v1_upload_room_proto_rawDescData = protoimpl.X.CompressGZIP(unsafe.Slice(unsafe.StringData(file_upload_room_v1_upload_room_proto_rawDesc), len(file_upload_room_v1_upload_room_proto_rawDesc)))
 	})
-	return file_lot_v1_lot_proto_rawDescData
+	return file_upload_room_v1_upload_room_proto_rawDescData
 }
 
-var file_lot_v1_lot_proto_msgTypes = make([]protoimpl.MessageInfo, 3)
-var file_lot_v1_lot_proto_goTypes = []any{
-	(*UploadRoom)(nil),         // 0: lot.v1.UploadRoom
-	(*CreateRoomResponse)(nil), // 1: lot.v1.CreateRoomResponse
-	(*CreateRoomRequest)(nil),  // 2: lot.v1.CreateRoomRequest
+var file_upload_room_v1_upload_room_proto_msgTypes = make([]protoimpl.MessageInfo, 3)
+var file_upload_room_v1_upload_room_proto_goTypes = []any{
+	(*UploadRoom)(nil),         // 0: upload_room.v1.UploadRoom
+	(*CreateRoomResponse)(nil), // 1: upload_room.v1.CreateRoomResponse
+	(*CreateRoomRequest)(nil),  // 2: upload_room.v1.CreateRoomRequest
 }
-var file_lot_v1_lot_proto_depIdxs = []int32{
-	0, // 0: lot.v1.CreateRoomRequest.room:type_name -> lot.v1.UploadRoom
-	2, // 1: lot.v1.UploadRoomService.CreateRoom:input_type -> lot.v1.CreateRoomRequest
-	1, // 2: lot.v1.UploadRoomService.CreateRoom:output_type -> lot.v1.CreateRoomResponse
+var file_upload_room_v1_upload_room_proto_depIdxs = []int32{
+	0, // 0: upload_room.v1.CreateRoomRequest.room:type_name -> upload_room.v1.UploadRoom
+	2, // 1: upload_room.v1.UploadRoomService.CreateRoom:input_type -> upload_room.v1.CreateRoomRequest
+	1, // 2: upload_room.v1.UploadRoomService.CreateRoom:output_type -> upload_room.v1.CreateRoomResponse
 	2, // [2:3] is the sub-list for method output_type
 	1, // [1:2] is the sub-list for method input_type
 	1, // [1:1] is the sub-list for extension type_name
@@ -211,26 +210,26 @@ var file_lot_v1_lot_proto_depIdxs = []int32{
 	0, // [0:1] is the sub-list for field type_name
 }
 
-func init() { file_lot_v1_lot_proto_init() }
-func file_lot_v1_lot_proto_init() {
-	if File_lot_v1_lot_proto != nil {
+func init() { file_upload_room_v1_upload_room_proto_init() }
+func file_upload_room_v1_upload_room_proto_init() {
+	if File_upload_room_v1_upload_room_proto != nil {
 		return
 	}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
-			RawDescriptor: unsafe.Slice(unsafe.StringData(file_lot_v1_lot_proto_rawDesc), len(file_lot_v1_lot_proto_rawDesc)),
+			RawDescriptor: unsafe.Slice(unsafe.StringData(file_upload_room_v1_upload_room_proto_rawDesc), len(file_upload_room_v1_upload_room_proto_rawDesc)),
 			NumEnums:      0,
 			NumMessages:   3,
 			NumExtensions: 0,
 			NumServices:   1,
 		},
-		GoTypes:           file_lot_v1_lot_proto_goTypes,
-		DependencyIndexes: file_lot_v1_lot_proto_depIdxs,
-		MessageInfos:      file_lot_v1_lot_proto_msgTypes,
+		GoTypes:           file_upload_room_v1_upload_room_proto_goTypes,
+		DependencyIndexes: file_upload_room_v1_upload_room_proto_depIdxs,
+		MessageInfos:      file_upload_room_v1_upload_room_proto_msgTypes,
 	}.Build()
-	File_lot_v1_lot_proto = out.File
-	file_lot_v1_lot_proto_goTypes = nil
-	file_lot_v1_lot_proto_depIdxs = nil
+	File_upload_room_v1_upload_room_proto = out.File
+	file_upload_room_v1_upload_room_proto_goTypes = nil
+	file_upload_room_v1_upload_room_proto_depIdxs = nil
 }

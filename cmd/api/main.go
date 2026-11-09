@@ -9,8 +9,8 @@ import (
 	"github.com/Auction-Application/be-auction-item/internal/imagestore"
 	"github.com/Auction-Application/be-auction-item/internal/server"
 	"github.com/Auction-Application/be-auction-item/internal/valid"
-	lotPb "github.com/Auction-Application/be-auction-item/rpc/gen/lot/v1"
 	lotimage "github.com/Auction-Application/be-auction-item/rpc/gen/lot_image/v1"
+	uploadRoom "github.com/Auction-Application/be-auction-item/rpc/gen/upload_room/v1"
 	"github.com/joho/godotenv"
 	"google.golang.org/grpc"
 )
@@ -65,7 +65,7 @@ func Run(port int, rpc Rpc) error {
 	}
 
 	grpcServer := grpc.NewServer(opts...)
-	lotPb.RegisterUploadRoomServiceServer(grpcServer, rpc.lotServer)
+	uploadRoom.RegisterUploadRoomServiceServer(grpcServer, rpc.lotServer)
 	lotimage.RegisterFileUploadServiceServer(grpcServer, rpc.imageStore)
 
 	fmt.Println("Listening...")
