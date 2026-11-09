@@ -4,7 +4,7 @@ sql:
     queries: './db_queries'
     schema: './migrations'
     database:
-      uri: 'postgres://auction-lot_user:auction-lot_pass@localhost:5434/auction-lot_db?sslmode=disable'
+      uri: 'postgres://auction_app:W%23hrcl%23.m17YB5%5Dm%3ENjt8%7C%282gQp%21@file-upload-db.cd8cmm6ks70a.ap-south-1.rds.amazonaws.com:5432/auction_db?sslmode=require'
     gen:
       go:
         package: 'filestore'

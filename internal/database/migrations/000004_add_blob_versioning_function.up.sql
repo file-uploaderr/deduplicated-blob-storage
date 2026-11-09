@@ -10,8 +10,8 @@ raise exception 'column "version" of table "%" is not user-updatable', TG_TABLE_
 using errcode='restrict_violation';
 end if;
 
-if (new.sha256,new.file_size,new.content_type,new.upload_type,new.upload_id,new.part_size,new.upload_room_id,new.file_name,new.storage_key,new.uploader_identity,
-new.upload_state,new.valid_until,new.verified) is not distinct from (old.sha256,old.file_size,old.content_type,old.upload_type,old.upload_id,old.part_size,old.upload_room_id,old.file_name,old.storage_key,old.uploader_identity,
+if (new.sha256,new.file_size,new.upload_type,new.upload_id,new.part_size,new.upload_room_id,new.storage_key,new.uploader_identity,
+new.upload_state,new.valid_until,new.verified) is not distinct from (old.sha256,old.file_size,old.upload_type,old.upload_id,old.part_size,old.upload_room_id,old.storage_key,old.uploader_identity,
 old.upload_state,old.valid_until,old.verified) then
 return new;
 end if;

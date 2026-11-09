@@ -12,7 +12,7 @@ import (
 )
 
 const getMultiPartUploadItem = `-- name: GetMultiPartUploadItem :one
-select upload_id,storage_key,part_count from image_blob_upload_attempts where image_blob_upload_attempt_id= $1
+select upload_id,storage_key,part_count from upload_config.image_blob_upload_attempts where id= $1
 `
 
 type GetMultiPartUploadItemRow struct {
@@ -29,20 +29,18 @@ func (q *Queries) GetMultiPartUploadItem(ctx context.Context, multipartAttemptID
 }
 
 const insertAndValidateMultiPartUpload = `-- name: InsertAndValidateMultiPartUpload :many
-insert into image_blob_upload_attempts(
-  sha256, file_size, content_type, upload_type, 
-  upload_id, part_size, lot_id, file_name, 
-  username, storage_key
+insert into upload_config.image_blob_upload_attempts(
+  sha256, file_size, upload_type, 
+  upload_id, part_size, upload_room_id, 
+  uploader_identity, storage_key
 ) 
 select 
   decode(i.sha256, 'hex') sha256, 
   i.file_size, 
-  i.content_type, 
-  $1 :: upload_type, 
+  $1 :: upload_config.upload_type, 
   i.upload_id, 
   $2 :: bigint, 
-  $3 :: uuid, 
-  i.file_name, 
+  $3 :: bigint, 
   $4 :: varchar(128), 
   i.storage_key 
 from 
@@ -50,14 +48,9 @@ from
     $5 :: char(64) [], 
   $6 :: int[], 
   $7 :: text[], 
-  $8 :: text[], 
-  
-    $9 :: varchar(250) []
-  , 
-  $10 :: uuid[]) i(
-    sha256, file_size, content_type, upload_id, 
-    file_name, storage_key
-  ) on conflict (sha256, lot_id) 
+  $8 :: uuid[]) i(
+    sha256, file_size, upload_id, storage_key
+  ) on conflict (sha256, upload_room_id) 
 where 
   upload_state = 'pending' do 
 update 
@@ -66,7 +59,7 @@ set
   valid_until = case when image_blob_upload_attempts.valid_until >= transaction_timestamp() then image_blob_upload_attempts.valid_until else transaction_timestamp()+ interval '5 days' end 
 returning 
   part_size, 
-  image_blob_upload_attempt_id, 
+  id, 
   encode(sha256,'hex') sha256, 
   storage_key, 
   upload_id,
@@ -79,40 +72,36 @@ coalesce(old.valid_until >=Now(),false)::boolean as is_valid
 `
 
 type InsertAndValidateMultiPartUploadParams struct {
-	UploadType   UploadType
-	PartSize     int64
-	LotID        uuid.UUID
-	Username     string
-	Sha256s      []string
-	FileSizes    []int32
-	ContentTypes []string
-	UploadIds    []string
-	FileNames    []string
-	StorageKeys  []uuid.UUID
+	UploadType       UploadConfigUploadType
+	PartSize         int64
+	UploadRoomID     int64
+	UploaderIdentity string
+	Sha256s          []string
+	FileSizes        []int32
+	UploadIds        []string
+	StorageKeys      []uuid.UUID
 }
 
 type InsertAndValidateMultiPartUploadRow struct {
-	PartSize                 *int64
-	ImageBlobUploadAttemptID int64
-	Sha256                   string
-	StorageKey               uuid.UUID
-	UploadID                 *string
-	Parts                    []int16
-	IsInserted               bool
-	IsValid                  bool
+	PartSize   *int64
+	ID         int64
+	Sha256     string
+	StorageKey uuid.UUID
+	UploadID   *string
+	Parts      []int16
+	IsInserted bool
+	IsValid    bool
 }
 
 func (q *Queries) InsertAndValidateMultiPartUpload(ctx context.Context, arg InsertAndValidateMultiPartUploadParams) ([]InsertAndValidateMultiPartUploadRow, error) {
 	rows, err := q.db.Query(ctx, insertAndValidateMultiPartUpload,
 		arg.UploadType,
 		arg.PartSize,
-		arg.LotID,
-		arg.Username,
+		arg.UploadRoomID,
+		arg.UploaderIdentity,
 		arg.Sha256s,
 		arg.FileSizes,
-		arg.ContentTypes,
 		arg.UploadIds,
-		arg.FileNames,
 		arg.StorageKeys,
 	)
 	if err != nil {
@@ -124,7 +113,7 @@ func (q *Queries) InsertAndValidateMultiPartUpload(ctx context.Context, arg Inse
 		var i InsertAndValidateMultiPartUploadRow
 		if err := rows.Scan(
 			&i.PartSize,
-			&i.ImageBlobUploadAttemptID,
+			&i.ID,
 			&i.Sha256,
 			&i.StorageKey,
 			&i.UploadID,
@@ -142,118 +131,32 @@ func (q *Queries) InsertAndValidateMultiPartUpload(ctx context.Context, arg Inse
 	return items, nil
 }
 
-const insertIdenticalImageBlobsToLotImages = `-- name: InsertIdenticalImageBlobsToLotImages :many
-WITH file_uploads
-     (
-          sha256,
-          file_name,
-          lot_id
-     )
-     AS
-     (
-            SELECT sha256,
-                   file_name,
-                   $1::uuid
-            FROM   unnest($2::char(64)[],$3::varchar(250)[]) i(sha256,file_name)
-     )
-     ,
-     lot_image_inserts AS
-     (
-                 INSERT INTO lot_images
-                             (
-                                         lot_id,
-                                         image_blob_id,
-                                         file_name
-                             )
-                 SELECT file_uploads.lot_id,
-                        image_blobs.image_blob_id,
-                        file_uploads.file_name
-                 FROM   file_uploads
-                 JOIN   image_blobs
-                 ON     image_blobs.sha256 = decode(file_uploads.sha256, 'hex')
-                 WHERE  image_blobs.is_upload_completed returning lot_image_id,
-                        file_name,
-                        image_blob_id
-     )
-SELECT i.lot_image_id,
-       i.file_name,
-       i.image_blob_id,
-       encode(ib.sha256,'hex') sha256
-FROM   lot_image_inserts i
-JOIN   image_blobs ib
-ON     i.image_blob_id=ib.image_blob_id
-`
-
-type InsertIdenticalImageBlobsToLotImagesParams struct {
-	LotID     uuid.UUID
-	Sha256s   []string
-	FileNames []string
-}
-
-type InsertIdenticalImageBlobsToLotImagesRow struct {
-	LotImageID  int64
-	FileName    string
-	ImageBlobID int64
-	Sha256      string
-}
-
-func (q *Queries) InsertIdenticalImageBlobsToLotImages(ctx context.Context, arg InsertIdenticalImageBlobsToLotImagesParams) ([]InsertIdenticalImageBlobsToLotImagesRow, error) {
-	rows, err := q.db.Query(ctx, insertIdenticalImageBlobsToLotImages, arg.LotID, arg.Sha256s, arg.FileNames)
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-	var items []InsertIdenticalImageBlobsToLotImagesRow
-	for rows.Next() {
-		var i InsertIdenticalImageBlobsToLotImagesRow
-		if err := rows.Scan(
-			&i.LotImageID,
-			&i.FileName,
-			&i.ImageBlobID,
-			&i.Sha256,
-		); err != nil {
-			return nil, err
-		}
-		items = append(items, i)
-	}
-	if err := rows.Err(); err != nil {
-		return nil, err
-	}
-	return items, nil
-}
-
 const insertSinglePartUpload = `-- name: InsertSinglePartUpload :many
-INSERT INTO image_blob_upload_attempts
+INSERT INTO upload_config.image_blob_upload_attempts
             (
                         sha256,
                         file_size,
-                        content_type,
                         upload_type,
-                        lot_id,
-                        file_name,
-                        username
+                        upload_room_id,
+                        uploader_identity
             )
 SELECT Decode(i.sha256,'hex'),
        i.file_size,
-       i.content_type,
-       $1::upload_type,
-       $2::     uuid,
-       i.file_name,
+       $1::upload_config.upload_type,
+       $2:: bigint,
        $3::text
-FROM   unnest( $4::char(64)[],$5::int[],$6:: text[],$7::text[]) i(sha256,file_size,content_type,file_name)
-ON conflict (sha256,lot_id)
+FROM   unnest( $4::char(64)[],$5::bigint[]) i(sha256,file_size)
+ON conflict (sha256,upload_room_id)
 WHERE  upload_state='pending'
 do update  set storage_key=image_blob_upload_attempts.storage_key returning encode(sha256, 'hex') sha256,storage_key,(old is null)::boolean as is_inserted
 `
 
 type InsertSinglePartUploadParams struct {
-	UploadType   UploadType
-	LotID        uuid.UUID
-	Username     string
-	Sha256s      []string
-	FileSizes    []int32
-	ContentTypes []string
-	FilesNames   []string
+	UploadType       UploadConfigUploadType
+	UploadRoomID     int64
+	UploaderIdentity string
+	Sha256s          []string
+	FileSizes        []int64
 }
 
 type InsertSinglePartUploadRow struct {
@@ -265,12 +168,10 @@ type InsertSinglePartUploadRow struct {
 func (q *Queries) InsertSinglePartUpload(ctx context.Context, arg InsertSinglePartUploadParams) ([]InsertSinglePartUploadRow, error) {
 	rows, err := q.db.Query(ctx, insertSinglePartUpload,
 		arg.UploadType,
-		arg.LotID,
-		arg.Username,
+		arg.UploadRoomID,
+		arg.UploaderIdentity,
 		arg.Sha256s,
 		arg.FileSizes,
-		arg.ContentTypes,
-		arg.FilesNames,
 	)
 	if err != nil {
 		return nil, err
@@ -283,6 +184,31 @@ func (q *Queries) InsertSinglePartUpload(ctx context.Context, arg InsertSinglePa
 			return nil, err
 		}
 		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const retrieveIdenticalBlobs = `-- name: RetrieveIdenticalBlobs :many
+select encode(sha256,'hex') sha256 from upload_config.image_blob_upload_attempts where sha256 = any(select decode(h.sha256,'hex') from unnest(
+$1::char(64)[]) h(sha256)) and verified=true
+`
+
+func (q *Queries) RetrieveIdenticalBlobs(ctx context.Context, sha256s []string) ([]string, error) {
+	rows, err := q.db.Query(ctx, retrieveIdenticalBlobs, sha256s)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []string
+	for rows.Next() {
+		var sha256 string
+		if err := rows.Scan(&sha256); err != nil {
+			return nil, err
+		}
+		items = append(items, sha256)
 	}
 	if err := rows.Err(); err != nil {
 		return nil, err

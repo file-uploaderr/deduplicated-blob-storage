@@ -12,128 +12,109 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
-type UploadAttemptState string
+type UploadConfigUploadAttemptState string
 
 const (
-	UploadAttemptStatePending   UploadAttemptState = "pending"
-	UploadAttemptStateCommitted UploadAttemptState = "committed"
+	UploadConfigUploadAttemptStatePending   UploadConfigUploadAttemptState = "pending"
+	UploadConfigUploadAttemptStateCommitted UploadConfigUploadAttemptState = "committed"
 )
 
-func (e *UploadAttemptState) Scan(src interface{}) error {
+func (e *UploadConfigUploadAttemptState) Scan(src interface{}) error {
 	switch s := src.(type) {
 	case []byte:
-		*e = UploadAttemptState(s)
+		*e = UploadConfigUploadAttemptState(s)
 	case string:
-		*e = UploadAttemptState(s)
+		*e = UploadConfigUploadAttemptState(s)
 	default:
-		return fmt.Errorf("unsupported scan type for UploadAttemptState: %T", src)
+		return fmt.Errorf("unsupported scan type for UploadConfigUploadAttemptState: %T", src)
 	}
 	return nil
 }
 
-type NullUploadAttemptState struct {
-	UploadAttemptState UploadAttemptState
-	Valid              bool // Valid is true if UploadAttemptState is not NULL
+type NullUploadConfigUploadAttemptState struct {
+	UploadConfigUploadAttemptState UploadConfigUploadAttemptState
+	Valid                          bool // Valid is true if UploadConfigUploadAttemptState is not NULL
 }
 
 // Scan implements the Scanner interface.
-func (ns *NullUploadAttemptState) Scan(value interface{}) error {
+func (ns *NullUploadConfigUploadAttemptState) Scan(value interface{}) error {
 	if value == nil {
-		ns.UploadAttemptState, ns.Valid = "", false
+		ns.UploadConfigUploadAttemptState, ns.Valid = "", false
 		return nil
 	}
 	ns.Valid = true
-	return ns.UploadAttemptState.Scan(value)
+	return ns.UploadConfigUploadAttemptState.Scan(value)
 }
 
 // Value implements the driver Valuer interface.
-func (ns NullUploadAttemptState) Value() (driver.Value, error) {
+func (ns NullUploadConfigUploadAttemptState) Value() (driver.Value, error) {
 	if !ns.Valid {
 		return nil, nil
 	}
-	return string(ns.UploadAttemptState), nil
+	return string(ns.UploadConfigUploadAttemptState), nil
 }
 
-type UploadType string
+type UploadConfigUploadType string
 
 const (
-	UploadTypeMultiUpload  UploadType = "multiUpload"
-	UploadTypeSingleUpload UploadType = "singleUpload"
+	UploadConfigUploadTypeMultiUpload  UploadConfigUploadType = "multiUpload"
+	UploadConfigUploadTypeSingleUpload UploadConfigUploadType = "singleUpload"
 )
 
-func (e *UploadType) Scan(src interface{}) error {
+func (e *UploadConfigUploadType) Scan(src interface{}) error {
 	switch s := src.(type) {
 	case []byte:
-		*e = UploadType(s)
+		*e = UploadConfigUploadType(s)
 	case string:
-		*e = UploadType(s)
+		*e = UploadConfigUploadType(s)
 	default:
-		return fmt.Errorf("unsupported scan type for UploadType: %T", src)
+		return fmt.Errorf("unsupported scan type for UploadConfigUploadType: %T", src)
 	}
 	return nil
 }
 
-type NullUploadType struct {
-	UploadType UploadType
-	Valid      bool // Valid is true if UploadType is not NULL
+type NullUploadConfigUploadType struct {
+	UploadConfigUploadType UploadConfigUploadType
+	Valid                  bool // Valid is true if UploadConfigUploadType is not NULL
 }
 
 // Scan implements the Scanner interface.
-func (ns *NullUploadType) Scan(value interface{}) error {
+func (ns *NullUploadConfigUploadType) Scan(value interface{}) error {
 	if value == nil {
-		ns.UploadType, ns.Valid = "", false
+		ns.UploadConfigUploadType, ns.Valid = "", false
 		return nil
 	}
 	ns.Valid = true
-	return ns.UploadType.Scan(value)
+	return ns.UploadConfigUploadType.Scan(value)
 }
 
 // Value implements the driver Valuer interface.
-func (ns NullUploadType) Value() (driver.Value, error) {
+func (ns NullUploadConfigUploadType) Value() (driver.Value, error) {
 	if !ns.Valid {
 		return nil, nil
 	}
-	return string(ns.UploadType), nil
+	return string(ns.UploadConfigUploadType), nil
 }
 
-type ImageBlob struct {
-	ImageBlobID       int64
-	Sha256            []byte
-	ContentType       string
-	S3Key             string
-	IsUploadCompleted bool
+type FileStoreUploadRoom struct {
+	Title       string
+	Description *string
+	ID          int64
 }
 
-type ImageBlobUploadAttempt struct {
-	ImageBlobUploadAttemptID int64
-	Sha256                   []byte
-	FileSize                 int64
-	ContentType              string
-	UploadType               UploadType
-	UploadID                 *string
-	PartSize                 *int64
-	PartCount                *int64
-	LotID                    uuid.UUID
-	FileName                 *string
-	StorageKey               uuid.UUID
-	Username                 string
-	UploadState              UploadAttemptState
-	Version                  int32
-	ValidUntil               pgtype.Timestamptz
-	Verified                 *bool
-}
-
-type Lot struct {
-	ID              uuid.UUID
-	Title           string
-	Description     string
-	Category        *string
-	BidOpeningPrice *int32
-}
-
-type LotImage struct {
-	LotImageID  int64
-	LotID       uuid.UUID
-	ImageBlobID int64
-	FileName    string
+type UploadConfigImageBlobUploadAttempt struct {
+	ID               int64
+	Sha256           []byte
+	FileSize         int64
+	UploadType       UploadConfigUploadType
+	UploadID         *string
+	PartSize         *int64
+	PartCount        *int64
+	UploadRoomID     int64
+	StorageKey       uuid.UUID
+	UploaderIdentity string
+	UploadState      UploadConfigUploadAttemptState
+	Version          int32
+	ValidUntil       pgtype.Timestamptz
+	Verified         bool
 }
