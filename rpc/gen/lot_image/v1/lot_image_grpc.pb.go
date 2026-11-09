@@ -19,139 +19,139 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	LotImageService_GeneratePresignedUrl_FullMethodName    = "/lot_image.v1.LotImageService/GeneratePresignedUrl"
-	LotImageService_CompleteMultiPartUpload_FullMethodName = "/lot_image.v1.LotImageService/CompleteMultiPartUpload"
+	FileUploadService_GeneratePresignedUrl_FullMethodName    = "/lot_image.v1.FileUploadService/GeneratePresignedUrl"
+	FileUploadService_CompleteMultiPartUpload_FullMethodName = "/lot_image.v1.FileUploadService/CompleteMultiPartUpload"
 )
 
-// LotImageServiceClient is the client API for LotImageService service.
+// FileUploadServiceClient is the client API for FileUploadService service.
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
-type LotImageServiceClient interface {
+type FileUploadServiceClient interface {
 	GeneratePresignedUrl(ctx context.Context, in *GeneratePresignedUrlRequest, opts ...grpc.CallOption) (*GeneratePresignedUrlResponse, error)
 	CompleteMultiPartUpload(ctx context.Context, in *CompleteMultiPartUploadRequest, opts ...grpc.CallOption) (*CompleteMultiPartUploadResponse, error)
 }
 
-type lotImageServiceClient struct {
+type fileUploadServiceClient struct {
 	cc grpc.ClientConnInterface
 }
 
-func NewLotImageServiceClient(cc grpc.ClientConnInterface) LotImageServiceClient {
-	return &lotImageServiceClient{cc}
+func NewFileUploadServiceClient(cc grpc.ClientConnInterface) FileUploadServiceClient {
+	return &fileUploadServiceClient{cc}
 }
 
-func (c *lotImageServiceClient) GeneratePresignedUrl(ctx context.Context, in *GeneratePresignedUrlRequest, opts ...grpc.CallOption) (*GeneratePresignedUrlResponse, error) {
+func (c *fileUploadServiceClient) GeneratePresignedUrl(ctx context.Context, in *GeneratePresignedUrlRequest, opts ...grpc.CallOption) (*GeneratePresignedUrlResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(GeneratePresignedUrlResponse)
-	err := c.cc.Invoke(ctx, LotImageService_GeneratePresignedUrl_FullMethodName, in, out, cOpts...)
+	err := c.cc.Invoke(ctx, FileUploadService_GeneratePresignedUrl_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *lotImageServiceClient) CompleteMultiPartUpload(ctx context.Context, in *CompleteMultiPartUploadRequest, opts ...grpc.CallOption) (*CompleteMultiPartUploadResponse, error) {
+func (c *fileUploadServiceClient) CompleteMultiPartUpload(ctx context.Context, in *CompleteMultiPartUploadRequest, opts ...grpc.CallOption) (*CompleteMultiPartUploadResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(CompleteMultiPartUploadResponse)
-	err := c.cc.Invoke(ctx, LotImageService_CompleteMultiPartUpload_FullMethodName, in, out, cOpts...)
+	err := c.cc.Invoke(ctx, FileUploadService_CompleteMultiPartUpload_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-// LotImageServiceServer is the server API for LotImageService service.
-// All implementations must embed UnimplementedLotImageServiceServer
+// FileUploadServiceServer is the server API for FileUploadService service.
+// All implementations must embed UnimplementedFileUploadServiceServer
 // for forward compatibility.
-type LotImageServiceServer interface {
+type FileUploadServiceServer interface {
 	GeneratePresignedUrl(context.Context, *GeneratePresignedUrlRequest) (*GeneratePresignedUrlResponse, error)
 	CompleteMultiPartUpload(context.Context, *CompleteMultiPartUploadRequest) (*CompleteMultiPartUploadResponse, error)
-	mustEmbedUnimplementedLotImageServiceServer()
+	mustEmbedUnimplementedFileUploadServiceServer()
 }
 
-// UnimplementedLotImageServiceServer must be embedded to have
+// UnimplementedFileUploadServiceServer must be embedded to have
 // forward compatible implementations.
 //
 // NOTE: this should be embedded by value instead of pointer to avoid a nil
 // pointer dereference when methods are called.
-type UnimplementedLotImageServiceServer struct{}
+type UnimplementedFileUploadServiceServer struct{}
 
-func (UnimplementedLotImageServiceServer) GeneratePresignedUrl(context.Context, *GeneratePresignedUrlRequest) (*GeneratePresignedUrlResponse, error) {
+func (UnimplementedFileUploadServiceServer) GeneratePresignedUrl(context.Context, *GeneratePresignedUrlRequest) (*GeneratePresignedUrlResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GeneratePresignedUrl not implemented")
 }
-func (UnimplementedLotImageServiceServer) CompleteMultiPartUpload(context.Context, *CompleteMultiPartUploadRequest) (*CompleteMultiPartUploadResponse, error) {
+func (UnimplementedFileUploadServiceServer) CompleteMultiPartUpload(context.Context, *CompleteMultiPartUploadRequest) (*CompleteMultiPartUploadResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method CompleteMultiPartUpload not implemented")
 }
-func (UnimplementedLotImageServiceServer) mustEmbedUnimplementedLotImageServiceServer() {}
-func (UnimplementedLotImageServiceServer) testEmbeddedByValue()                         {}
+func (UnimplementedFileUploadServiceServer) mustEmbedUnimplementedFileUploadServiceServer() {}
+func (UnimplementedFileUploadServiceServer) testEmbeddedByValue()                           {}
 
-// UnsafeLotImageServiceServer may be embedded to opt out of forward compatibility for this service.
-// Use of this interface is not recommended, as added methods to LotImageServiceServer will
+// UnsafeFileUploadServiceServer may be embedded to opt out of forward compatibility for this service.
+// Use of this interface is not recommended, as added methods to FileUploadServiceServer will
 // result in compilation errors.
-type UnsafeLotImageServiceServer interface {
-	mustEmbedUnimplementedLotImageServiceServer()
+type UnsafeFileUploadServiceServer interface {
+	mustEmbedUnimplementedFileUploadServiceServer()
 }
 
-func RegisterLotImageServiceServer(s grpc.ServiceRegistrar, srv LotImageServiceServer) {
-	// If the following call pancis, it indicates UnimplementedLotImageServiceServer was
+func RegisterFileUploadServiceServer(s grpc.ServiceRegistrar, srv FileUploadServiceServer) {
+	// If the following call pancis, it indicates UnimplementedFileUploadServiceServer was
 	// embedded by pointer and is nil.  This will cause panics if an
 	// unimplemented method is ever invoked, so we test this at initialization
 	// time to prevent it from happening at runtime later due to I/O.
 	if t, ok := srv.(interface{ testEmbeddedByValue() }); ok {
 		t.testEmbeddedByValue()
 	}
-	s.RegisterService(&LotImageService_ServiceDesc, srv)
+	s.RegisterService(&FileUploadService_ServiceDesc, srv)
 }
 
-func _LotImageService_GeneratePresignedUrl_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _FileUploadService_GeneratePresignedUrl_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(GeneratePresignedUrlRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(LotImageServiceServer).GeneratePresignedUrl(ctx, in)
+		return srv.(FileUploadServiceServer).GeneratePresignedUrl(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: LotImageService_GeneratePresignedUrl_FullMethodName,
+		FullMethod: FileUploadService_GeneratePresignedUrl_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(LotImageServiceServer).GeneratePresignedUrl(ctx, req.(*GeneratePresignedUrlRequest))
+		return srv.(FileUploadServiceServer).GeneratePresignedUrl(ctx, req.(*GeneratePresignedUrlRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _LotImageService_CompleteMultiPartUpload_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _FileUploadService_CompleteMultiPartUpload_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(CompleteMultiPartUploadRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(LotImageServiceServer).CompleteMultiPartUpload(ctx, in)
+		return srv.(FileUploadServiceServer).CompleteMultiPartUpload(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: LotImageService_CompleteMultiPartUpload_FullMethodName,
+		FullMethod: FileUploadService_CompleteMultiPartUpload_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(LotImageServiceServer).CompleteMultiPartUpload(ctx, req.(*CompleteMultiPartUploadRequest))
+		return srv.(FileUploadServiceServer).CompleteMultiPartUpload(ctx, req.(*CompleteMultiPartUploadRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-// LotImageService_ServiceDesc is the grpc.ServiceDesc for LotImageService service.
+// FileUploadService_ServiceDesc is the grpc.ServiceDesc for FileUploadService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
-var LotImageService_ServiceDesc = grpc.ServiceDesc{
-	ServiceName: "lot_image.v1.LotImageService",
-	HandlerType: (*LotImageServiceServer)(nil),
+var FileUploadService_ServiceDesc = grpc.ServiceDesc{
+	ServiceName: "lot_image.v1.FileUploadService",
+	HandlerType: (*FileUploadServiceServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
 			MethodName: "GeneratePresignedUrl",
-			Handler:    _LotImageService_GeneratePresignedUrl_Handler,
+			Handler:    _FileUploadService_GeneratePresignedUrl_Handler,
 		},
 		{
 			MethodName: "CompleteMultiPartUpload",
-			Handler:    _LotImageService_CompleteMultiPartUpload_Handler,
+			Handler:    _FileUploadService_CompleteMultiPartUpload_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

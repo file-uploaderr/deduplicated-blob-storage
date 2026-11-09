@@ -22,7 +22,7 @@ const (
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
 
-type ImageFile struct {
+type File struct {
 	state    protoimpl.MessageState `protogen:"open.v1"`
 	Sha256   *string                `protobuf:"bytes,1,opt,name=sha256" json:"sha256,omitempty"`
 	FileName *string                `protobuf:"bytes,2,opt,name=file_name,json=fileName" json:"file_name,omitempty"`
@@ -33,20 +33,20 @@ type ImageFile struct {
 	sizeCache     protoimpl.SizeCache
 }
 
-func (x *ImageFile) Reset() {
-	*x = ImageFile{}
+func (x *File) Reset() {
+	*x = File{}
 	mi := &file_lot_image_v1_lot_image_proto_msgTypes[0]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *ImageFile) String() string {
+func (x *File) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*ImageFile) ProtoMessage() {}
+func (*File) ProtoMessage() {}
 
-func (x *ImageFile) ProtoReflect() protoreflect.Message {
+func (x *File) ProtoReflect() protoreflect.Message {
 	mi := &file_lot_image_v1_lot_image_proto_msgTypes[0]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -58,33 +58,33 @@ func (x *ImageFile) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use ImageFile.ProtoReflect.Descriptor instead.
-func (*ImageFile) Descriptor() ([]byte, []int) {
+// Deprecated: Use File.ProtoReflect.Descriptor instead.
+func (*File) Descriptor() ([]byte, []int) {
 	return file_lot_image_v1_lot_image_proto_rawDescGZIP(), []int{0}
 }
 
-func (x *ImageFile) GetSha256() string {
+func (x *File) GetSha256() string {
 	if x != nil && x.Sha256 != nil {
 		return *x.Sha256
 	}
 	return ""
 }
 
-func (x *ImageFile) GetFileName() string {
+func (x *File) GetFileName() string {
 	if x != nil && x.FileName != nil {
 		return *x.FileName
 	}
 	return ""
 }
 
-func (x *ImageFile) GetClientFileId() int32 {
+func (x *File) GetClientFileId() int32 {
 	if x != nil && x.ClientFileId != nil {
 		return *x.ClientFileId
 	}
 	return 0
 }
 
-func (x *ImageFile) GetFileSize() uint64 {
+func (x *File) GetFileSize() uint64 {
 	if x != nil && x.FileSize != nil {
 		return *x.FileSize
 	}
@@ -92,10 +92,11 @@ func (x *ImageFile) GetFileSize() uint64 {
 }
 
 type GeneratePresignedUrlRequest struct {
-	state     protoimpl.MessageState `protogen:"open.v1"`
-	LotImages []*ImageFile           `protobuf:"bytes,1,rep,name=lot_images,json=lotImages" json:"lot_images,omitempty"`
+	state protoimpl.MessageState `protogen:"open.v1"`
+	Files []*File                `protobuf:"bytes,1,rep,name=files" json:"files,omitempty"`
 	// todo change lot_id to number, not uuid later
-	LotId         *string `protobuf:"bytes,2,opt,name=lot_id,json=lotId" json:"lot_id,omitempty"`
+	// string lot_id = 2;
+	UploadRoomId  *uint64 `protobuf:"varint,3,opt,name=upload_room_id,json=uploadRoomId" json:"upload_room_id,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -130,24 +131,22 @@ func (*GeneratePresignedUrlRequest) Descriptor() ([]byte, []int) {
 	return file_lot_image_v1_lot_image_proto_rawDescGZIP(), []int{1}
 }
 
-func (x *GeneratePresignedUrlRequest) GetLotImages() []*ImageFile {
+func (x *GeneratePresignedUrlRequest) GetFiles() []*File {
 	if x != nil {
-		return x.LotImages
+		return x.Files
 	}
 	return nil
 }
 
-func (x *GeneratePresignedUrlRequest) GetLotId() string {
-	if x != nil && x.LotId != nil {
-		return *x.LotId
+func (x *GeneratePresignedUrlRequest) GetUploadRoomId() uint64 {
+	if x != nil && x.UploadRoomId != nil {
+		return *x.UploadRoomId
 	}
-	return ""
+	return 0
 }
 
 type GeneratePresignedUrlResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	Success       *bool                  `protobuf:"varint,1,opt,name=success" json:"success,omitempty"`
-	Message       *string                `protobuf:"bytes,2,opt,name=message" json:"message,omitempty"`
 	PresignResult *PresignFileResult     `protobuf:"bytes,3,opt,name=presign_result,json=presignResult" json:"presign_result,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
@@ -181,20 +180,6 @@ func (x *GeneratePresignedUrlResponse) ProtoReflect() protoreflect.Message {
 // Deprecated: Use GeneratePresignedUrlResponse.ProtoReflect.Descriptor instead.
 func (*GeneratePresignedUrlResponse) Descriptor() ([]byte, []int) {
 	return file_lot_image_v1_lot_image_proto_rawDescGZIP(), []int{2}
-}
-
-func (x *GeneratePresignedUrlResponse) GetSuccess() bool {
-	if x != nil && x.Success != nil {
-		return *x.Success
-	}
-	return false
-}
-
-func (x *GeneratePresignedUrlResponse) GetMessage() string {
-	if x != nil && x.Message != nil {
-		return *x.Message
-	}
-	return ""
 }
 
 func (x *GeneratePresignedUrlResponse) GetPresignResult() *PresignFileResult {
@@ -363,8 +348,8 @@ func (x *CompleteMultiPartUploadResponse) GetMessage() string {
 
 type PresignFileResult struct {
 	state                protoimpl.MessageState `protogen:"open.v1"`
-	DuplicateFiles       []*ImageFile           `protobuf:"bytes,1,rep,name=duplicate_files,json=duplicateFiles" json:"duplicate_files,omitempty"`
-	AlreadyUploadedFiles []*ImageFile           `protobuf:"bytes,2,rep,name=already_uploaded_files,json=alreadyUploadedFiles" json:"already_uploaded_files,omitempty"`
+	DuplicateFiles       []*File                `protobuf:"bytes,1,rep,name=duplicate_files,json=duplicateFiles" json:"duplicate_files,omitempty"`
+	AlreadyUploadedFiles []*File                `protobuf:"bytes,2,rep,name=already_uploaded_files,json=alreadyUploadedFiles" json:"already_uploaded_files,omitempty"`
 	PresignedFiles       []*PresignedFile       `protobuf:"bytes,3,rep,name=presigned_files,json=presignedFiles" json:"presigned_files,omitempty"`
 	unknownFields        protoimpl.UnknownFields
 	sizeCache            protoimpl.SizeCache
@@ -400,14 +385,14 @@ func (*PresignFileResult) Descriptor() ([]byte, []int) {
 	return file_lot_image_v1_lot_image_proto_rawDescGZIP(), []int{6}
 }
 
-func (x *PresignFileResult) GetDuplicateFiles() []*ImageFile {
+func (x *PresignFileResult) GetDuplicateFiles() []*File {
 	if x != nil {
 		return x.DuplicateFiles
 	}
 	return nil
 }
 
-func (x *PresignFileResult) GetAlreadyUploadedFiles() []*ImageFile {
+func (x *PresignFileResult) GetAlreadyUploadedFiles() []*File {
 	if x != nil {
 		return x.AlreadyUploadedFiles
 	}
@@ -423,7 +408,7 @@ func (x *PresignFileResult) GetPresignedFiles() []*PresignedFile {
 
 type PresignedFile struct {
 	state              protoimpl.MessageState `protogen:"open.v1"`
-	UploadFile         *ImageFile             `protobuf:"bytes,1,opt,name=upload_file,json=uploadFile" json:"upload_file,omitempty"`
+	UploadFile         *File                  `protobuf:"bytes,1,opt,name=upload_file,json=uploadFile" json:"upload_file,omitempty"`
 	PresignedUploadUrl *PresignedUploadUrl    `protobuf:"bytes,2,opt,name=presigned_upload_url,json=presignedUploadUrl" json:"presigned_upload_url,omitempty"`
 	unknownFields      protoimpl.UnknownFields
 	sizeCache          protoimpl.SizeCache
@@ -459,7 +444,7 @@ func (*PresignedFile) Descriptor() ([]byte, []int) {
 	return file_lot_image_v1_lot_image_proto_rawDescGZIP(), []int{7}
 }
 
-func (x *PresignedFile) GetUploadFile() *ImageFile {
+func (x *PresignedFile) GetUploadFile() *File {
 	if x != nil {
 		return x.UploadFile
 	}
@@ -827,21 +812,18 @@ var File_lot_image_v1_lot_image_proto protoreflect.FileDescriptor
 
 const file_lot_image_v1_lot_image_proto_rawDesc = "" +
 	"\n" +
-	"\x1clot_image/v1/lot_image.proto\x12\flot_image.v1\x1a\x1bbuf/validate/validate.proto\"\xac\x01\n" +
-	"\tImageFile\x12#\n" +
+	"\x1clot_image/v1/lot_image.proto\x12\flot_image.v1\x1a\x1bbuf/validate/validate.proto\"\xa7\x01\n" +
+	"\x04File\x12#\n" +
 	"\x06sha256\x18\x01 \x01(\tB\v\xbaH\b\xc8\x01\x01r\x03\x98\x01@R\x06sha256\x12*\n" +
 	"\tfile_name\x18\x02 \x01(\tB\r\xbaH\n" +
 	"\xc8\x01\x01r\x05\x10\x03\x18\xfa\x01R\bfileName\x12$\n" +
 	"\x0eclient_file_id\x18\x03 \x01(\x05R\fclientFileId\x12(\n" +
-	"\tfile_size\x18\x04 \x01(\x04B\v\xbaH\b2\x06\x18\x80\x80\x80\x80\x18R\bfileSize\"l\n" +
-	"\x1bGeneratePresignedUrlRequest\x126\n" +
-	"\n" +
-	"lot_images\x18\x01 \x03(\v2\x17.lot_image.v1.ImageFileR\tlotImages\x12\x15\n" +
-	"\x06lot_id\x18\x02 \x01(\tR\x05lotId\"\x9a\x01\n" +
-	"\x1cGeneratePresignedUrlResponse\x12\x18\n" +
-	"\asuccess\x18\x01 \x01(\bR\asuccess\x12\x18\n" +
-	"\amessage\x18\x02 \x01(\tR\amessage\x12F\n" +
-	"\x0epresign_result\x18\x03 \x01(\v2\x1f.lot_image.v1.PresignFileResultR\rpresignResult\"\x89\x01\n" +
+	"\tfile_size\x18\x04 \x01(\x04B\v\xbaH\b2\x06\x18\x80\x80\x80\x80\x18R\bfileSize\"s\n" +
+	"\x1bGeneratePresignedUrlRequest\x12(\n" +
+	"\x05files\x18\x01 \x03(\v2\x12.lot_image.v1.FileR\x05files\x12$\n" +
+	"\x0eupload_room_id\x18\x03 \x01(\x04R\fuploadRoomIdJ\x04\b\x02\x10\x03\"r\n" +
+	"\x1cGeneratePresignedUrlResponse\x12F\n" +
+	"\x0epresign_result\x18\x03 \x01(\v2\x1f.lot_image.v1.PresignFileResultR\rpresignResultJ\x04\b\x01\x10\x02J\x04\b\x02\x10\x03\"\x89\x01\n" +
 	"\x1eCompleteMultiPartUploadRequest\x120\n" +
 	"\x14multipart_attempt_id\x18\x01 \x01(\x03R\x12multipartAttemptId\x125\n" +
 	"\n" +
@@ -852,13 +834,13 @@ const file_lot_image_v1_lot_image_proto_rawDesc = "" +
 	"\xbaH\a*\x05\x18\x90N(\x01R\x04part\"U\n" +
 	"\x1fCompleteMultiPartUploadResponse\x12\x18\n" +
 	"\asuccess\x18\x01 \x01(\bR\asuccess\x12\x18\n" +
-	"\amessage\x18\x02 \x01(\tR\amessage\"\xea\x01\n" +
-	"\x11PresignFileResult\x12@\n" +
-	"\x0fduplicate_files\x18\x01 \x03(\v2\x17.lot_image.v1.ImageFileR\x0eduplicateFiles\x12M\n" +
-	"\x16already_uploaded_files\x18\x02 \x03(\v2\x17.lot_image.v1.ImageFileR\x14alreadyUploadedFiles\x12D\n" +
-	"\x0fpresigned_files\x18\x03 \x03(\v2\x1b.lot_image.v1.PresignedFileR\x0epresignedFiles\"\x9d\x01\n" +
-	"\rPresignedFile\x128\n" +
-	"\vupload_file\x18\x01 \x01(\v2\x17.lot_image.v1.ImageFileR\n" +
+	"\amessage\x18\x02 \x01(\tR\amessage\"\xe0\x01\n" +
+	"\x11PresignFileResult\x12;\n" +
+	"\x0fduplicate_files\x18\x01 \x03(\v2\x12.lot_image.v1.FileR\x0eduplicateFiles\x12H\n" +
+	"\x16already_uploaded_files\x18\x02 \x03(\v2\x12.lot_image.v1.FileR\x14alreadyUploadedFiles\x12D\n" +
+	"\x0fpresigned_files\x18\x03 \x03(\v2\x1b.lot_image.v1.PresignedFileR\x0epresignedFiles\"\x98\x01\n" +
+	"\rPresignedFile\x123\n" +
+	"\vupload_file\x18\x01 \x01(\v2\x12.lot_image.v1.FileR\n" +
 	"uploadFile\x12R\n" +
 	"\x14presigned_upload_url\x18\x02 \x01(\v2 .lot_image.v1.PresignedUploadUrlR\x12presignedUploadUrl\"\xa6\x01\n" +
 	"\x12PresignedUploadUrl\x12@\n" +
@@ -884,8 +866,8 @@ const file_lot_image_v1_lot_image_proto_rawDesc = "" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x120\n" +
 	"\x05value\x18\x02 \x01(\v2\x1a.lot_image.v1.HeaderValuesR\x05value:\x028\x01\"&\n" +
 	"\fHeaderValues\x12\x16\n" +
-	"\x06values\x18\x01 \x03(\tR\x06values2\xf8\x01\n" +
-	"\x0fLotImageService\x12m\n" +
+	"\x06values\x18\x01 \x03(\tR\x06values2\xfa\x01\n" +
+	"\x11FileUploadService\x12m\n" +
 	"\x14GeneratePresignedUrl\x12).lot_image.v1.GeneratePresignedUrlRequest\x1a*.lot_image.v1.GeneratePresignedUrlResponse\x12v\n" +
 	"\x17CompleteMultiPartUpload\x12,.lot_image.v1.CompleteMultiPartUploadRequest\x1a-.lot_image.v1.CompleteMultiPartUploadResponseBz\n" +
 	"\x10com.lot_image.v1B\rLotImageProtoP\x01Z\n" +
@@ -905,7 +887,7 @@ func file_lot_image_v1_lot_image_proto_rawDescGZIP() []byte {
 
 var file_lot_image_v1_lot_image_proto_msgTypes = make([]protoimpl.MessageInfo, 15)
 var file_lot_image_v1_lot_image_proto_goTypes = []any{
-	(*ImageFile)(nil),                       // 0: lot_image.v1.ImageFile
+	(*File)(nil),                            // 0: lot_image.v1.File
 	(*GeneratePresignedUrlRequest)(nil),     // 1: lot_image.v1.GeneratePresignedUrlRequest
 	(*GeneratePresignedUrlResponse)(nil),    // 2: lot_image.v1.GeneratePresignedUrlResponse
 	(*CompleteMultiPartUploadRequest)(nil),  // 3: lot_image.v1.CompleteMultiPartUploadRequest
@@ -922,13 +904,13 @@ var file_lot_image_v1_lot_image_proto_goTypes = []any{
 	nil,                                     // 14: lot_image.v1.Request.SignedHeaderEntry
 }
 var file_lot_image_v1_lot_image_proto_depIdxs = []int32{
-	0,  // 0: lot_image.v1.GeneratePresignedUrlRequest.lot_images:type_name -> lot_image.v1.ImageFile
+	0,  // 0: lot_image.v1.GeneratePresignedUrlRequest.files:type_name -> lot_image.v1.File
 	6,  // 1: lot_image.v1.GeneratePresignedUrlResponse.presign_result:type_name -> lot_image.v1.PresignFileResult
 	4,  // 2: lot_image.v1.CompleteMultiPartUploadRequest.part_etags:type_name -> lot_image.v1.PartEtag
-	0,  // 3: lot_image.v1.PresignFileResult.duplicate_files:type_name -> lot_image.v1.ImageFile
-	0,  // 4: lot_image.v1.PresignFileResult.already_uploaded_files:type_name -> lot_image.v1.ImageFile
+	0,  // 3: lot_image.v1.PresignFileResult.duplicate_files:type_name -> lot_image.v1.File
+	0,  // 4: lot_image.v1.PresignFileResult.already_uploaded_files:type_name -> lot_image.v1.File
 	7,  // 5: lot_image.v1.PresignFileResult.presigned_files:type_name -> lot_image.v1.PresignedFile
-	0,  // 6: lot_image.v1.PresignedFile.upload_file:type_name -> lot_image.v1.ImageFile
+	0,  // 6: lot_image.v1.PresignedFile.upload_file:type_name -> lot_image.v1.File
 	8,  // 7: lot_image.v1.PresignedFile.presigned_upload_url:type_name -> lot_image.v1.PresignedUploadUrl
 	10, // 8: lot_image.v1.PresignedUploadUrl.single:type_name -> lot_image.v1.SinglePresignedUploadUrl
 	9,  // 9: lot_image.v1.PresignedUploadUrl.multi:type_name -> lot_image.v1.MultiPresignedUploadUrl
@@ -938,10 +920,10 @@ var file_lot_image_v1_lot_image_proto_depIdxs = []int32{
 	12, // 13: lot_image.v1.MultiPresignedHTTPRequest.request:type_name -> lot_image.v1.Request
 	14, // 14: lot_image.v1.Request.signed_header:type_name -> lot_image.v1.Request.SignedHeaderEntry
 	13, // 15: lot_image.v1.Request.SignedHeaderEntry.value:type_name -> lot_image.v1.HeaderValues
-	1,  // 16: lot_image.v1.LotImageService.GeneratePresignedUrl:input_type -> lot_image.v1.GeneratePresignedUrlRequest
-	3,  // 17: lot_image.v1.LotImageService.CompleteMultiPartUpload:input_type -> lot_image.v1.CompleteMultiPartUploadRequest
-	2,  // 18: lot_image.v1.LotImageService.GeneratePresignedUrl:output_type -> lot_image.v1.GeneratePresignedUrlResponse
-	5,  // 19: lot_image.v1.LotImageService.CompleteMultiPartUpload:output_type -> lot_image.v1.CompleteMultiPartUploadResponse
+	1,  // 16: lot_image.v1.FileUploadService.GeneratePresignedUrl:input_type -> lot_image.v1.GeneratePresignedUrlRequest
+	3,  // 17: lot_image.v1.FileUploadService.CompleteMultiPartUpload:input_type -> lot_image.v1.CompleteMultiPartUploadRequest
+	2,  // 18: lot_image.v1.FileUploadService.GeneratePresignedUrl:output_type -> lot_image.v1.GeneratePresignedUrlResponse
+	5,  // 19: lot_image.v1.FileUploadService.CompleteMultiPartUpload:output_type -> lot_image.v1.CompleteMultiPartUploadResponse
 	18, // [18:20] is the sub-list for method output_type
 	16, // [16:18] is the sub-list for method input_type
 	16, // [16:16] is the sub-list for extension type_name

@@ -14,7 +14,7 @@ import (
 )
 
 type ImageStore struct {
-	lotimage.UnimplementedLotImageServiceServer
+	lotimage.UnimplementedFileUploadServiceServer
 	dbStorageQuery *filestore.Queries
 	s3Storage      *s3Storage
 	conn           *pgx.Conn
@@ -46,7 +46,7 @@ func convertToCompletedPart(wireFormatEtagParts []*lotimage.PartEtag) []types.Co
 }
 
 func (imageStore *ImageStore) GeneratePresignedUrl(ctx context.Context, presignRequest *lotimage.GeneratePresignedUrlRequest) (*lotimage.GeneratePresignedUrlResponse, error) {
-	uploadfileRequestResult, err := imageStore.initiateUpload(ctx, convertToUploadFiles(presignRequest.LotImages), *presignRequest.LotId)
+	uploadfileRequestResult, err := imageStore.initiateUpload(ctx, convertToUploadFiles(presignRequest.Files), *presignRequest.UploadRoomId)
 	if err != nil {
 		return nil, err
 	}
@@ -66,8 +66,6 @@ func (imageStore *ImageStore) GeneratePresignedUrl(ctx context.Context, presignR
 	}
 
 	response := &lotimage.GeneratePresignedUrlResponse{
-		Success: new(true),
-		Message: new("Presigned url created"),
 		PresignResult: &lotimage.PresignFileResult{
 			DuplicateFiles:       dulicateImageFiles,
 			AlreadyUploadedFiles: alreadyUploadedImageFiles,
@@ -186,7 +184,7 @@ func convertToLotImageMultiPartPresignedHttpRequest(multiPresignedUrl multiPresi
 	return lotImagePresignedRequests
 }
 
-func convertToUploadFiles(imageFiles []*lotimage.ImageFile) []uploadFile {
+func convertToUploadFiles(imageFiles []*lotimage.File) []uploadFile {
 	uploadFiles := make([]uploadFile, 0, len(imageFiles))
 	for _, image := range imageFiles {
 		uploadFiles = append(uploadFiles, convertToUploadFile(image))
@@ -195,7 +193,7 @@ func convertToUploadFiles(imageFiles []*lotimage.ImageFile) []uploadFile {
 	return uploadFiles
 }
 
-func convertToUploadFile(imageFile *lotimage.ImageFile) uploadFile {
+func convertToUploadFile(imageFile *lotimage.File) uploadFile {
 	uploadFile := uploadFile{
 		Sha256:       *imageFile.Sha256,
 		FileName:     *imageFile.FileName,
@@ -205,8 +203,8 @@ func convertToUploadFile(imageFile *lotimage.ImageFile) uploadFile {
 	return uploadFile
 }
 
-func convertToImageFiles(files []uploadFile) ([]*lotimage.ImageFile, error) {
-	imageFiles := make([]*lotimage.ImageFile, 0, len(files))
+func convertToImageFiles(files []uploadFile) ([]*lotimage.File, error) {
+	imageFiles := make([]*lotimage.File, 0, len(files))
 	for _, file := range files {
 		iFile, err := convertToImageFile(file)
 		if err != nil {
@@ -219,13 +217,13 @@ func convertToImageFiles(files []uploadFile) ([]*lotimage.ImageFile, error) {
 	return imageFiles, nil
 }
 
-func convertToImageFile(file uploadFile) (*lotimage.ImageFile, error) {
+func convertToImageFile(file uploadFile) (*lotimage.File, error) {
 	const operation apperror.Operation = "imagestore.convertToImageFile"
 	clientId, err := strconv.Atoi(file.ClientFileId)
 	if err != nil {
 		return nil, apperror.InternalServerError(operation, fmt.Errorf("cannot convert client file id %s to integer:%w", file.ClientFileId, err), "internal error").MarkAsClientErr()
 	}
-	imageFile := &lotimage.ImageFile{
+	imageFile := &lotimage.File{
 		Sha256:       new(file.Sha256),
 		FileName:     new(file.FileName),
 		ClientFileId: new(int32(clientId)),

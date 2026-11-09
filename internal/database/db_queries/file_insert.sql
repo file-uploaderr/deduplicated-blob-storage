@@ -45,7 +45,7 @@ select
 from 
   unnest(
     @sha256s :: char(64) [], 
-  @file_sizes :: int[], 
+  @file_sizes :: bigint[], 
   @upload_ids :: text[], 
   @storage_keys :: uuid[]) i(
     sha256, file_size, upload_id, storage_key

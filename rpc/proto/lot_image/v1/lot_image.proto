@@ -6,7 +6,7 @@ import "buf/validate/validate.proto";
 
 option go_package = ".;lotimage";
 
-message ImageFile {
+message File {
   string sha256 = 1 [
     (buf.validate.field).required = true,
     (buf.validate.field).string.len = 64
@@ -22,20 +22,21 @@ message ImageFile {
 }
 
 message GeneratePresignedUrlRequest {
-  repeated ImageFile lot_images = 1;
+  repeated File files = 1;
   // todo change lot_id to number, not uuid later
-  string lot_id = 2;
+  // string lot_id = 2;
+  uint64 upload_room_id = 3;
+  reserved 2;
 }
 
-service LotImageService {
+service FileUploadService {
   rpc GeneratePresignedUrl(GeneratePresignedUrlRequest) returns (GeneratePresignedUrlResponse);
   rpc CompleteMultiPartUpload(CompleteMultiPartUploadRequest) returns (CompleteMultiPartUploadResponse);
 }
 
 message GeneratePresignedUrlResponse {
-  bool success = 1;
-  string message = 2;
   PresignFileResult presign_result = 3;
+  reserved 1, 2;
 }
 message CompleteMultiPartUploadRequest {
   int64 multipart_attempt_id = 1;
@@ -57,13 +58,13 @@ message CompleteMultiPartUploadResponse {
 }
 
 message PresignFileResult {
-  repeated ImageFile duplicate_files = 1;
-  repeated ImageFile already_uploaded_files = 2;
+  repeated File duplicate_files = 1;
+  repeated File already_uploaded_files = 2;
   repeated PresignedFile presigned_files = 3;
 }
 
 message PresignedFile {
-  ImageFile upload_file = 1;
+  File upload_file = 1;
   PresignedUploadUrl presigned_upload_url = 2;
 }
 

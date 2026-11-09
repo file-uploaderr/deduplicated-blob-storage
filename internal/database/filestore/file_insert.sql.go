@@ -46,7 +46,7 @@ select
 from 
   unnest(
     $5 :: char(64) [], 
-  $6 :: int[], 
+  $6 :: bigint[], 
   $7 :: text[], 
   $8 :: uuid[]) i(
     sha256, file_size, upload_id, storage_key
@@ -77,7 +77,7 @@ type InsertAndValidateMultiPartUploadParams struct {
 	UploadRoomID     int64
 	UploaderIdentity string
 	Sha256s          []string
-	FileSizes        []int32
+	FileSizes        []int64
 	UploadIds        []string
 	StorageKeys      []uuid.UUID
 }

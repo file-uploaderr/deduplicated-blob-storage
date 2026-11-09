@@ -87,7 +87,7 @@ type multiUploadFile = uploadFile
 type singleUploadFile = uploadFile
 
 func (s3Storage s3Storage) generateS3UploadUrl(ctx context.Context, files []uploadFile,
-	lotId uuid.UUID, query *filestore.Queries,
+	uploadRoomId uint64, query *filestore.Queries,
 ) ([]presignedFileUrl, error) {
 	fileUploads := make([]presignedFileUrl, 0, len(files))
 
@@ -100,7 +100,7 @@ func (s3Storage s3Storage) generateS3UploadUrl(ctx context.Context, files []uplo
 	// todo do generation of singleFileUrls and multipartFileUrls concurrently, benchmark the performance gain,if no improvement then revert back to sequential execution
 	if len(extractData.singleFile.singlePartFileSha256s) > 0 {
 		singlePresignedFileUrls, err := s3Storage.createSinglePresignedFileUrl(ctx,
-			lotId, query, extractData.singleFile)
+			uploadRoomId, query, extractData.singleFile)
 		if err != nil {
 			return nil, err
 		}
@@ -109,7 +109,7 @@ func (s3Storage s3Storage) generateS3UploadUrl(ctx context.Context, files []uplo
 
 	if len(extractData.multipartFile.multipartFileSha256s) > 0 {
 		multipartPresignedFileUrls, err := s3Storage.createMultipartPresignedFileUrl(ctx,
-			lotId, query, extractData.multipartFile)
+			uploadRoomId, query, extractData.multipartFile)
 		if err != nil {
 			return nil, err
 		}
@@ -121,23 +121,26 @@ func (s3Storage s3Storage) generateS3UploadUrl(ctx context.Context, files []uplo
 }
 
 func (s3Storage s3Storage) createMultipartPresignedFileUrl(ctx context.Context,
-	lotId uuid.UUID, query *filestore.Queries, multipartFileData multipartFileData,
+	uploadRoomId uint64, query *filestore.Queries, multipartFileData multipartFileData,
 ) ([]presignedFileUrl, error) {
 	const operation apperror.Operation = "imagestore.createMultipartPresignedFileUrl"
 	multipartPresignedFileUrls := make([]presignedFileUrl, 0)
 
 	multiUploadResult, err := query.InsertAndValidateMultiPartUpload(
 		ctx, filestore.InsertAndValidateMultiPartUploadParams{
-			UploadType:   filestore.UploadTypeMultiUpload,
-			PartSize:     partSize,
-			LotID:        lotId,
-			Username:     "dummyUsername",
-			Sha256s:      multipartFileData.multipartFileSha256s,
-			FileSizes:    multipartFileData.multipartFileSizes,
-			ContentTypes: multipartFileData.multipartFileContentTypes,
-			FileNames:    multipartFileData.multipartFileNames,
-			StorageKeys:  multipartFileData.multipartFileStorageKeys,
-			UploadIds:    multipartFileData.multipartFileUploadIds,
+			UploadType: filestore.UploadConfigUploadTypeMultiUpload,
+			PartSize:   partSize,
+			// todo can uploadRoomId be larger than int64???
+			UploadRoomID: int64(uploadRoomId),
+
+			// Username:     "dummyUsername",
+			UploaderIdentity: "dummyUsername",
+			Sha256s:          multipartFileData.multipartFileSha256s,
+			FileSizes:        multipartFileData.multipartFileSizes,
+			// ContentTypes:     multipartFileData.multipartFileContentTypes,
+			// FileNames:        multipartFileData.multipartFileNames,
+			StorageKeys: multipartFileData.multipartFileStorageKeys,
+			UploadIds:   multipartFileData.multipartFileUploadIds,
 		})
 	if err != nil {
 		errFields, ok := database.DeriveIfStorageErrorMessage(err)
@@ -168,19 +171,21 @@ func (s3Storage s3Storage) createMultipartPresignedFileUrl(ctx context.Context,
 }
 
 func (s3Storage s3Storage) createSinglePresignedFileUrl(ctx context.Context,
-	lotId uuid.UUID, query *filestore.Queries, singleFileData singleFileData,
+	uploadRoomId uint64, query *filestore.Queries, singleFileData singleFileData,
 ) ([]presignedFileUrl, error) {
 	const operation apperror.Operation = "fileupload.createSinglePresignedFileUrl"
 	singlePresignedFileUrls := make([]presignedFileUrl, 0, len(singleFileData.singleFileUploads))
 	insertedSinglePartFiles, err := query.InsertSinglePartUpload(ctx,
 		filestore.InsertSinglePartUploadParams{
-			UploadType:   filestore.UploadTypeSingleUpload,
-			LotID:        lotId,
-			Username:     "coackroach",
-			Sha256s:      singleFileData.singlePartFileSha256s,
-			FileSizes:    singleFileData.singlePartFileSizes,
-			ContentTypes: singleFileData.singlePartFileContentTypes,
-			FilesNames:   singleFileData.singlePartFileNames,
+			UploadType: filestore.UploadConfigUploadTypeSingleUpload,
+			// LotID:        lotId,
+			// todo fix this
+			UploadRoomID:     12,
+			UploaderIdentity: "coackroach",
+			Sha256s:          singleFileData.singlePartFileSha256s,
+			FileSizes:        singleFileData.singlePartFileSizes,
+			// ContentTypes: singleFileData.singlePartFileContentTypes,
+			// FilesNames:   singleFileData.singlePartFileNames,
 		})
 	if err != nil {
 		errFields, ok := database.DeriveIfStorageErrorMessage(err)
@@ -216,19 +221,19 @@ func (s3Storage s3Storage) createSinglePresignedFileUrl(ctx context.Context,
 type singleFileData struct {
 	singleFileUploads          []singleUploadFile
 	singlePartFileSha256s      []string
-	singlePartFileSizes        []int32
+	singlePartFileSizes        []int64
 	singlePartFileContentTypes []string
 	singlePartFileNames        []string
 }
 
 type multipartFileData struct {
-	multiFileUploadMap        map[string]multiUploadFile
-	multipartFileSha256s      []string
-	multipartFileSizes        []int32
-	multipartFileContentTypes []string
-	multipartFileNames        []string
-	multipartFileStorageKeys  []uuid.UUID
-	multipartFileUploadIds    []string
+	multiFileUploadMap   map[string]multiUploadFile
+	multipartFileSha256s []string
+	multipartFileSizes   []int64
+	// multipartFileContentTypes []string
+	// multipartFileNames        []string
+	multipartFileStorageKeys []uuid.UUID
+	multipartFileUploadIds   []string
 }
 
 type extractFile struct {
@@ -241,14 +246,14 @@ func (s3Storage s3Storage) extractFileData(ctx context.Context, files []uploadFi
 	singleFileUploads := make([]singleUploadFile, 0)
 
 	singleFileSha256s := make([]string, 0)
-	singleFileSizes := make([]int32, 0)
+	singleFileSizes := make([]int64, 0)
 	singleFileContentTypes := make([]string, 0)
 	singleFileNames := make([]string, 0)
 
 	multiFileUploadMap := make(map[string]multiUploadFile)
 
 	multipartFileSha256s := make([]string, 0)
-	multipartFileSizes := make([]int32, 0)
+	multipartFileSizes := make([]int64, 0)
 	multipartFileContentTypes := make([]string, 0)
 	multipartFileNames := make([]string, 0)
 	multipartFileStorageKeys := make([]uuid.UUID, 0)
@@ -257,7 +262,7 @@ func (s3Storage s3Storage) extractFileData(ctx context.Context, files []uploadFi
 		if file.FileSize < multipartThreshold {
 			singleFileUploads = append(singleFileUploads, file)
 			singleFileSha256s = append(singleFileSha256s, file.Sha256)
-			singleFileSizes = append(singleFileSizes, int32(file.FileSize))
+			singleFileSizes = append(singleFileSizes, int64(file.FileSize))
 			singleFileContentTypes = append(singleFileContentTypes, "image/jpeg")
 			singleFileNames = append(singleFileNames, file.FileName)
 
@@ -266,7 +271,7 @@ func (s3Storage s3Storage) extractFileData(ctx context.Context, files []uploadFi
 			multipartFileSha256s = append(multipartFileSha256s, file.Sha256)
 			multipartFileContentTypes = append(multipartFileContentTypes, "image/jpeg")
 			multipartFileNames = append(multipartFileNames, file.FileName)
-			multipartFileSizes = append(multipartFileSizes, int32(file.FileSize))
+			multipartFileSizes = append(multipartFileSizes, int64(file.FileSize))
 			generatedUUID, err := makeUUIDText()
 			if err != nil {
 				return extractFile{}, apperror.InternalServerError(operation, fmt.Errorf("cannot generate uuid:%w", err), "internal error").MarkAsClientErr()
@@ -289,13 +294,13 @@ func (s3Storage s3Storage) extractFileData(ctx context.Context, files []uploadFi
 			singlePartFileNames:        singleFileNames,
 		},
 		multipartFile: multipartFileData{
-			multiFileUploadMap:        multiFileUploadMap,
-			multipartFileSha256s:      multipartFileSha256s,
-			multipartFileSizes:        multipartFileSizes,
-			multipartFileContentTypes: multipartFileContentTypes,
-			multipartFileNames:        multipartFileNames,
-			multipartFileStorageKeys:  multipartFileStorageKeys,
-			multipartFileUploadIds:    multipartFileUploadIds,
+			multiFileUploadMap:   multiFileUploadMap,
+			multipartFileSha256s: multipartFileSha256s,
+			multipartFileSizes:   multipartFileSizes,
+			// multipartFileContentTypes: multipartFileContentTypes,
+			// multipartFileNames:        multipartFileNames,
+			multipartFileStorageKeys: multipartFileStorageKeys,
+			multipartFileUploadIds:   multipartFileUploadIds,
 		},
 	}, nil
 }
@@ -319,23 +324,25 @@ func segregateMultiUploadFiles(multiUploadResult []filestore.InsertAndValidateMu
 	for _, multiUpload := range multiUploadResult {
 		if multiUpload.IsInserted || (!multiUpload.IsInserted && !multiUpload.IsValid) {
 			newMultiUploads = append(newMultiUploads, newMultipartGenerationData{
-				objectKey:          multiUpload.StorageKey.String(),
-				fileParts:          multiUpload.Parts,
-				uploadId:           *multiUpload.UploadID,
-				storageKey:         multiUpload.StorageKey.String(),
-				sha256:             multiUpload.Sha256,
-				partSize:           *multiUpload.PartSize,
-				multipartAttemptId: multiUpload.ImageBlobUploadAttemptID,
+				objectKey:  multiUpload.StorageKey.String(),
+				fileParts:  multiUpload.Parts,
+				uploadId:   *multiUpload.UploadID,
+				storageKey: multiUpload.StorageKey.String(),
+				sha256:     multiUpload.Sha256,
+				partSize:   *multiUpload.PartSize,
+				// multipartAttemptId: multiUpload.ImageBlobUploadAttemptID,
+				multipartAttemptId: multiUpload.ID,
 			})
 		} else if multiUpload.IsValid {
 			resumableMultiUploads = append(resumableMultiUploads, resumableValidMultiPartGenerationData{
-				objectKey:          multiUpload.StorageKey.String(),
-				fileParts:          multiUpload.Parts,
-				uploadId:           *multiUpload.UploadID,
-				storageKey:         multiUpload.StorageKey.String(),
-				sha256:             multiUpload.Sha256,
-				partSize:           *multiUpload.PartSize,
-				multipartAttemptId: multiUpload.ImageBlobUploadAttemptID,
+				objectKey:  multiUpload.StorageKey.String(),
+				fileParts:  multiUpload.Parts,
+				uploadId:   *multiUpload.UploadID,
+				storageKey: multiUpload.StorageKey.String(),
+				sha256:     multiUpload.Sha256,
+				partSize:   *multiUpload.PartSize,
+				// multipartAttemptId: multiUpload.ImageBlobUploadAttemptID,
+				multipartAttemptId: multiUpload.ID,
 			})
 		}
 	}
@@ -630,33 +637,34 @@ type uploadFileRequestResult struct {
 	presignedFileUrls    []presignedFileUrl
 }
 
-func (imageStore *ImageStore) initiateUpload(ctx context.Context, fileToUpload []uploadFile, lotId string) (uploadFileRequestResult, error) {
+func (imageStore *ImageStore) initiateUpload(ctx context.Context, fileToUpload []uploadFile, uploadRoomId uint64) (uploadFileRequestResult, error) {
 	const operation apperror.Operation = "imageStore.initiateUpload"
 	files, duplicateFiles := intentBatchUpload(fileToUpload)
-	lotIdUUID, err := uuid.Parse(lotId)
-	if err != nil {
-		return uploadFileRequestResult{}, apperror.InvalidArgumentError(operation, apperror.ErrDetails{
-			Fields: []apperror.FieldError{
-				{
-					Field:       "lotId",
-					Description: "lotId could not be parsed as uuid",
-				},
-			},
-			Message: "unknown lotId",
-		},
-			err).MarkAsClientErr()
-	}
+	// uploadRoomId,ok:=new(big.Int).SetString(uploadRoomIdString,10)
+	// // uploadRoomId, err := strconv.Atoi(uploadRoomIdString)
+	// if !ok {
+	// 	return uploadFileRequestResult{}, apperror.InvalidArgumentError(operation, apperror.ErrDetails{
+	// 		Fields: []apperror.FieldError{
+	// 			{
+	// 				Field:       "uploadRoomId",
+	// 				Description: "uploadRoomId could not be parsed",
+	// 			},
+	// 		},
+	// 		Message: "Unknown Upload Room Id",
+	// 	},
+	// 		fmt.Errorf("uploadRoomId could not be parsed")).MarkAsClientErr()
+	// }
 	tx, err := imageStore.conn.Begin(ctx)
 	if err != nil {
 		return uploadFileRequestResult{}, apperror.InternalServerError(operation, fmt.Errorf("start of db transaction failed:%w", err), "cannot start operation").MarkAsClientErr()
 	}
 	defer tx.Rollback(ctx)
 	qtx := imageStore.dbStorageQuery.WithTx(tx)
-	needToBeUploadFiles, alreadyUploadedFiles, err := skipUploadForIdenticalImageBlobs(ctx, files, lotIdUUID, qtx)
+	needToBeUploadFiles, alreadyUploadedFiles, err := skipUploadForIdenticalImageBlobs(ctx, files, uploadRoomId, qtx)
 	if err != nil {
 		return uploadFileRequestResult{}, err
 	}
-	presignedUrls, err := imageStore.s3Storage.generateS3UploadUrl(ctx, needToBeUploadFiles, lotIdUUID, qtx)
+	presignedUrls, err := imageStore.s3Storage.generateS3UploadUrl(ctx, needToBeUploadFiles, uploadRoomId, qtx)
 	if err != nil {
 		return uploadFileRequestResult{}, err
 	}
@@ -673,7 +681,7 @@ func (imageStore *ImageStore) initiateUpload(ctx context.Context, fileToUpload [
 
 type alreadyUploadedFile = uploadFile
 
-func skipUploadForIdenticalImageBlobs(ctx context.Context, files []uploadFile, lotId uuid.UUID, query *filestore.Queries) ([]uploadFile, []alreadyUploadedFile, error) {
+func skipUploadForIdenticalImageBlobs(ctx context.Context, files []uploadFile, uploadRoomId uint64, query *filestore.Queries) ([]uploadFile, []alreadyUploadedFile, error) {
 	const operation apperror.Operation = "imagestore.skipUploadForIdenticalImageBlobs"
 	sha256s := make([]string, 0, len(files))
 	fileNames := make([]string, 0, len(files))
@@ -686,11 +694,12 @@ func skipUploadForIdenticalImageBlobs(ctx context.Context, files []uploadFile, l
 	}
 
 	// todo check image_blobs table instead of lot_images table
-	identicalBlobs, err := query.InsertIdenticalImageBlobsToLotImages(ctx, filestore.InsertIdenticalImageBlobsToLotImagesParams{
-		Sha256s:   sha256s,
-		LotID:     lotId,
-		FileNames: fileNames,
-	})
+	identicalBlobs, err := query.RetrieveIdenticalBlobs(ctx, sha256s)
+	// identicalBlobs, err := query.InsertIdenticalImageBlobsToLotImages(ctx, filestore.InsertIdenticalImageBlobsToLotImagesParams{
+	// 	Sha256s:   sha256s,
+	// 	LotID:     lotId,
+	// 	FileNames: fileNames,
+	// })
 	if err != nil {
 		errFields, ok := database.DeriveIfStorageErrorMessage(err)
 		if !ok {
@@ -706,10 +715,10 @@ func skipUploadForIdenticalImageBlobs(ctx context.Context, files []uploadFile, l
 		}, err).MarkAsClientErr()
 	}
 
-	existingFileMap := make(map[string]filestore.InsertIdenticalImageBlobsToLotImagesRow, len(identicalBlobs))
+	existingFileMap := make(map[string]string, len(identicalBlobs))
 
-	for _, exisitingFile := range identicalBlobs {
-		existingFileMap[exisitingFile.Sha256] = exisitingFile
+	for _, fileHash := range identicalBlobs {
+		existingFileMap[fileHash] = fileHash
 	}
 
 	needToBeUploadedFiles, alreadyUploadedFiles := separateUploadedAndNeedToBeUploadedFiles(fileMap, existingFileMap)
@@ -717,7 +726,7 @@ func skipUploadForIdenticalImageBlobs(ctx context.Context, files []uploadFile, l
 	return needToBeUploadedFiles, alreadyUploadedFiles, nil
 }
 
-func separateUploadedAndNeedToBeUploadedFiles(fileMap map[string]uploadFile, existingFileMap map[string]filestore.InsertIdenticalImageBlobsToLotImagesRow) ([]uploadFile, []alreadyUploadedFile) {
+func separateUploadedAndNeedToBeUploadedFiles(fileMap map[string]uploadFile, existingFileMap map[string]string) ([]uploadFile, []alreadyUploadedFile) {
 	var alreadyUploadedFiles []alreadyUploadedFile
 	var needToBeUploadedFiles []uploadFile
 	for _, file := range fileMap {

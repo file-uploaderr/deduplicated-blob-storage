@@ -6,8 +6,8 @@ import "buf/validate/validate.proto";
 
 option go_package = ".;lotPb";
 
-message Lot {
-  string lot_title = 1 [
+message UploadRoom {
+  string title = 1 [
     (buf.validate.field).string.min_len = 1,
     (buf.validate.field).required = true
   ];
@@ -22,16 +22,15 @@ message Lot {
   int32 bid_opening_price = 4;
 }
 
-service LotService {
-  rpc CreateLot(CreateLotRequest) returns (CreateLotResponse);
+service UploadRoomService {
+  rpc CreateRoom(CreateRoomRequest) returns (CreateRoomResponse);
 }
 
-message CreateLotResponse {
-  bool success = 1;
-  string message = 2;
-  string lot_id = 3;
+message CreateRoomResponse {
+  uint64 upload_room_id = 3;
+  reserved 1, 2;
 }
 
-message CreateLotRequest {
-  Lot lot = 1;
+message CreateRoomRequest {
+  UploadRoom room = 1;
 }

@@ -19,101 +19,101 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	LotService_CreateLot_FullMethodName = "/lot.v1.LotService/CreateLot"
+	UploadRoomService_CreateRoom_FullMethodName = "/lot.v1.UploadRoomService/CreateRoom"
 )
 
-// LotServiceClient is the client API for LotService service.
+// UploadRoomServiceClient is the client API for UploadRoomService service.
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
-type LotServiceClient interface {
-	CreateLot(ctx context.Context, in *CreateLotRequest, opts ...grpc.CallOption) (*CreateLotResponse, error)
+type UploadRoomServiceClient interface {
+	CreateRoom(ctx context.Context, in *CreateRoomRequest, opts ...grpc.CallOption) (*CreateRoomResponse, error)
 }
 
-type lotServiceClient struct {
+type uploadRoomServiceClient struct {
 	cc grpc.ClientConnInterface
 }
 
-func NewLotServiceClient(cc grpc.ClientConnInterface) LotServiceClient {
-	return &lotServiceClient{cc}
+func NewUploadRoomServiceClient(cc grpc.ClientConnInterface) UploadRoomServiceClient {
+	return &uploadRoomServiceClient{cc}
 }
 
-func (c *lotServiceClient) CreateLot(ctx context.Context, in *CreateLotRequest, opts ...grpc.CallOption) (*CreateLotResponse, error) {
+func (c *uploadRoomServiceClient) CreateRoom(ctx context.Context, in *CreateRoomRequest, opts ...grpc.CallOption) (*CreateRoomResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(CreateLotResponse)
-	err := c.cc.Invoke(ctx, LotService_CreateLot_FullMethodName, in, out, cOpts...)
+	out := new(CreateRoomResponse)
+	err := c.cc.Invoke(ctx, UploadRoomService_CreateRoom_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-// LotServiceServer is the server API for LotService service.
-// All implementations must embed UnimplementedLotServiceServer
+// UploadRoomServiceServer is the server API for UploadRoomService service.
+// All implementations must embed UnimplementedUploadRoomServiceServer
 // for forward compatibility.
-type LotServiceServer interface {
-	CreateLot(context.Context, *CreateLotRequest) (*CreateLotResponse, error)
-	mustEmbedUnimplementedLotServiceServer()
+type UploadRoomServiceServer interface {
+	CreateRoom(context.Context, *CreateRoomRequest) (*CreateRoomResponse, error)
+	mustEmbedUnimplementedUploadRoomServiceServer()
 }
 
-// UnimplementedLotServiceServer must be embedded to have
+// UnimplementedUploadRoomServiceServer must be embedded to have
 // forward compatible implementations.
 //
 // NOTE: this should be embedded by value instead of pointer to avoid a nil
 // pointer dereference when methods are called.
-type UnimplementedLotServiceServer struct{}
+type UnimplementedUploadRoomServiceServer struct{}
 
-func (UnimplementedLotServiceServer) CreateLot(context.Context, *CreateLotRequest) (*CreateLotResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method CreateLot not implemented")
+func (UnimplementedUploadRoomServiceServer) CreateRoom(context.Context, *CreateRoomRequest) (*CreateRoomResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method CreateRoom not implemented")
 }
-func (UnimplementedLotServiceServer) mustEmbedUnimplementedLotServiceServer() {}
-func (UnimplementedLotServiceServer) testEmbeddedByValue()                    {}
+func (UnimplementedUploadRoomServiceServer) mustEmbedUnimplementedUploadRoomServiceServer() {}
+func (UnimplementedUploadRoomServiceServer) testEmbeddedByValue()                           {}
 
-// UnsafeLotServiceServer may be embedded to opt out of forward compatibility for this service.
-// Use of this interface is not recommended, as added methods to LotServiceServer will
+// UnsafeUploadRoomServiceServer may be embedded to opt out of forward compatibility for this service.
+// Use of this interface is not recommended, as added methods to UploadRoomServiceServer will
 // result in compilation errors.
-type UnsafeLotServiceServer interface {
-	mustEmbedUnimplementedLotServiceServer()
+type UnsafeUploadRoomServiceServer interface {
+	mustEmbedUnimplementedUploadRoomServiceServer()
 }
 
-func RegisterLotServiceServer(s grpc.ServiceRegistrar, srv LotServiceServer) {
-	// If the following call pancis, it indicates UnimplementedLotServiceServer was
+func RegisterUploadRoomServiceServer(s grpc.ServiceRegistrar, srv UploadRoomServiceServer) {
+	// If the following call pancis, it indicates UnimplementedUploadRoomServiceServer was
 	// embedded by pointer and is nil.  This will cause panics if an
 	// unimplemented method is ever invoked, so we test this at initialization
 	// time to prevent it from happening at runtime later due to I/O.
 	if t, ok := srv.(interface{ testEmbeddedByValue() }); ok {
 		t.testEmbeddedByValue()
 	}
-	s.RegisterService(&LotService_ServiceDesc, srv)
+	s.RegisterService(&UploadRoomService_ServiceDesc, srv)
 }
 
-func _LotService_CreateLot_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(CreateLotRequest)
+func _UploadRoomService_CreateRoom_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CreateRoomRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(LotServiceServer).CreateLot(ctx, in)
+		return srv.(UploadRoomServiceServer).CreateRoom(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: LotService_CreateLot_FullMethodName,
+		FullMethod: UploadRoomService_CreateRoom_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(LotServiceServer).CreateLot(ctx, req.(*CreateLotRequest))
+		return srv.(UploadRoomServiceServer).CreateRoom(ctx, req.(*CreateRoomRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-// LotService_ServiceDesc is the grpc.ServiceDesc for LotService service.
+// UploadRoomService_ServiceDesc is the grpc.ServiceDesc for UploadRoomService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
-var LotService_ServiceDesc = grpc.ServiceDesc{
-	ServiceName: "lot.v1.LotService",
-	HandlerType: (*LotServiceServer)(nil),
+var UploadRoomService_ServiceDesc = grpc.ServiceDesc{
+	ServiceName: "lot.v1.UploadRoomService",
+	HandlerType: (*UploadRoomServiceServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
-			MethodName: "CreateLot",
-			Handler:    _LotService_CreateLot_Handler,
+			MethodName: "CreateRoom",
+			Handler:    _UploadRoomService_CreateRoom_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
