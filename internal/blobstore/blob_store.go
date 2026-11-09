@@ -20,9 +20,9 @@ type BlobStore struct {
 	conn           *pgx.Conn
 }
 
-func (imageStore *BlobStore) CompleteMultiPartUpload(ctx context.Context, completeMultipartRequest *uploadFile.CompleteMultiPartUploadRequest) (*uploadFile.CompleteMultiPartUploadResponse, error) {
+func (blobStore *BlobStore) CompleteMultiPartUpload(ctx context.Context, completeMultipartRequest *uploadFile.CompleteMultiPartUploadRequest) (*uploadFile.CompleteMultiPartUploadResponse, error) {
 	etagParts := convertToCompletedPart(completeMultipartRequest.PartEtags)
-	blobID, err := imageStore.completeMultiPartUpload(ctx, *completeMultipartRequest.MultipartAttemptId, "arn:aws:s3:ap-south-1:433154991296:accesspoint/auction-lot-service-access-point", etagParts)
+	blobID, err := blobStore.completeMultiPartUpload(ctx, *completeMultipartRequest.MultipartAttemptId, "arn:aws:s3:ap-south-1:433154991296:accesspoint/auction-lot-service-access-point", etagParts)
 	if err != nil {
 		return nil, err
 	}
@@ -44,92 +44,92 @@ func convertToCompletedPart(wireFormatEtagParts []*uploadFile.PartEtag) []types.
 	return etagParts
 }
 
-func (imageStore *BlobStore) GeneratePresignedUrl(ctx context.Context, presignRequest *uploadFile.GeneratePresignedUrlRequest) (*uploadFile.GeneratePresignedUrlResponse, error) {
-	uploadfileRequestResult, err := imageStore.initiateUpload(ctx, convertToUploadFiles(presignRequest.Files), *presignRequest.UploadRoomId)
+func (blobStore *BlobStore) GeneratePresignedUrl(ctx context.Context, presignRequest *uploadFile.GeneratePresignedUrlRequest) (*uploadFile.GeneratePresignedUrlResponse, error) {
+	uploadfileRequestResult, err := blobStore.initiateUpload(ctx, convertToUploadFiles(presignRequest.Files), *presignRequest.UploadRoomId)
 	if err != nil {
 		return nil, err
 	}
 
-	dulicateImageFiles, err := convertToImageFiles(uploadfileRequestResult.duplicateFiles)
+	dulicateFiles, err := convertToFile(uploadfileRequestResult.duplicateFiles)
 	if err != nil {
 		return nil, err
 	}
-	alreadyUploadedImageFiles, err := convertToImageFiles(uploadfileRequestResult.alreadyUploadedFiles)
+	alreadyUploadedFiles, err := convertToFile(uploadfileRequestResult.alreadyUploadedFiles)
 	if err != nil {
 		return nil, err
 	}
 
-	presignedImageFiles, err := convertToPresignedImageFiles(uploadfileRequestResult.presignedFileUrls)
+	presignedFiles, err := convertToPresignedFiles(uploadfileRequestResult.presignedFileUrls)
 	if err != nil {
 		return nil, err
 	}
 
 	response := &uploadFile.GeneratePresignedUrlResponse{
 		PresignResult: &uploadFile.PresignFileResult{
-			DuplicateFiles:       dulicateImageFiles,
-			AlreadyUploadedFiles: alreadyUploadedImageFiles,
-			PresignedFiles:       presignedImageFiles,
+			DuplicateFiles:       dulicateFiles,
+			AlreadyUploadedFiles: alreadyUploadedFiles,
+			PresignedFiles:       presignedFiles,
 		},
 	}
 
 	return response, nil
 }
 
-func convertToPresignedImageFiles(presignedUrls []presignedFileUrl) ([]*uploadFile.PresignedFile, error) {
-	presignedImageFileUrls := make([]*uploadFile.PresignedFile, 0, len(presignedUrls))
+func convertToPresignedFiles(presignedUrls []presignedFileUrl) ([]*uploadFile.PresignedFile, error) {
+	presignedFileUrls := make([]*uploadFile.PresignedFile, 0, len(presignedUrls))
 	for _, v := range presignedUrls {
-		imageUrl, err := convertToPresignedFile(v)
+		fileUrl, err := convertToPresignedFile(v)
 		if err != nil {
 			return nil, err
 		}
-		presignedImageFileUrls = append(presignedImageFileUrls, imageUrl)
+		presignedFileUrls = append(presignedFileUrls, fileUrl)
 	}
 
-	return presignedImageFileUrls, nil
+	return presignedFileUrls, nil
 }
 
 func convertToPresignedFile(presignedUrl presignedFileUrl) (*uploadFile.PresignedFile, error) {
-	imageFile, err := convertToImageFile(presignedUrl.fileUploadData)
+	file, err := convertToInternalFile(presignedUrl.fileUploadData)
 	if err != nil {
 		return nil, err
 	}
 	presignedUploadUrl := presignedUrl.presignedUploadUrl
 
-	var presignedImageUploadUrl *uploadFile.PresignedUploadUrl
+	var presignedFileUploadUrl *uploadFile.PresignedUploadUrl
 
 	if presignedUploadUrl.Single.request != nil {
 		singleUpload := &uploadFile.PresignedUploadUrl_Single{
 			Single: &uploadFile.SinglePresignedUploadUrl{
-				Request: convertToLotImageSinglePresignedHttpRequest(presignedUploadUrl.Single.request),
+				Request: convertToSinglePresignedHttpRequest(presignedUploadUrl.Single.request),
 			},
 		}
-		presignedImageUploadUrl = &uploadFile.PresignedUploadUrl{
+		presignedFileUploadUrl = &uploadFile.PresignedUploadUrl{
 			PresignedUrl: singleUpload,
 		}
 
 	} else {
 		multiUpload := &uploadFile.PresignedUploadUrl_Multi{
 			Multi: &uploadFile.MultiPresignedUploadUrl{
-				MultiParts:         convertToLotImageMultiPartPresignedHttpRequest(presignedUploadUrl.Multi),
+				MultiParts:         convertToMultiPartPresignedHttpRequest(presignedUploadUrl.Multi),
 				MultipartAttemptId: &presignedUploadUrl.Multi.multipartAttemptId,
 				PartSize:           &presignedUrl.Multi.partSize,
-				UploadedEtags:      convertToUploadedEtags(presignedUploadUrl.Multi.imageEtags),
+				UploadedEtags:      convertToUploadedEtags(presignedUploadUrl.Multi.fileEtags),
 			},
 		}
-		presignedImageUploadUrl = &uploadFile.PresignedUploadUrl{
+		presignedFileUploadUrl = &uploadFile.PresignedUploadUrl{
 			PresignedUrl: multiUpload,
 		}
 
 	}
 	return &uploadFile.PresignedFile{
-		UploadFile:         imageFile,
-		PresignedUploadUrl: presignedImageUploadUrl,
+		UploadFile:         file,
+		PresignedUploadUrl: presignedFileUploadUrl,
 	}, nil
 }
 
-func convertToUploadedEtags(imageTags []imageEtag) []*uploadFile.PartEtag {
-	uploadedEtags := make([]*uploadFile.PartEtag, 0, len(imageTags))
-	for _, tag := range imageTags {
+func convertToUploadedEtags(fileTags []fileEtag) []*uploadFile.PartEtag {
+	uploadedEtags := make([]*uploadFile.PartEtag, 0, len(fileTags))
+	for _, tag := range fileTags {
 		uploadedEtags = append(uploadedEtags, &uploadFile.PartEtag{
 			Etag: &tag.etag,
 			Part: new(uint32(tag.partNumber)),
@@ -138,7 +138,7 @@ func convertToUploadedEtags(imageTags []imageEtag) []*uploadFile.PartEtag {
 	return uploadedEtags
 }
 
-func convertToLotImageMultiPresignedHttpRequest(multiPresignedRequest multiPresignedRequest) *uploadFile.MultiPresignedHTTPRequest {
+func convertToMultiPresignedHttpRequest(multiPresignedRequest multiPresignedRequest) *uploadFile.MultiPresignedHTTPRequest {
 	signedHeader := make(map[string]*uploadFile.HeaderValues, len(multiPresignedRequest.request.SignedHeader))
 	for key, values := range multiPresignedRequest.request.SignedHeader {
 		signedHeader[key] = &uploadFile.HeaderValues{
@@ -157,7 +157,7 @@ func convertToLotImageMultiPresignedHttpRequest(multiPresignedRequest multiPresi
 	return presignRequest
 }
 
-func convertToLotImageSinglePresignedHttpRequest(presignedRequest *v4.PresignedHTTPRequest) *uploadFile.Request {
+func convertToSinglePresignedHttpRequest(presignedRequest *v4.PresignedHTTPRequest) *uploadFile.Request {
 	signedHeader := make(map[string]*uploadFile.HeaderValues, len(presignedRequest.SignedHeader))
 	for key, values := range presignedRequest.SignedHeader {
 		signedHeader[key] = &uploadFile.HeaderValues{
@@ -174,66 +174,65 @@ func convertToLotImageSinglePresignedHttpRequest(presignedRequest *v4.PresignedH
 	return presignRequest
 }
 
-func convertToLotImageMultiPartPresignedHttpRequest(multiPresignedUrl multiPresignedUrl) []*uploadFile.MultiPresignedHTTPRequest {
-	lotImagePresignedRequests := make([]*uploadFile.MultiPresignedHTTPRequest, 0, len(multiPresignedUrl.requests))
+func convertToMultiPartPresignedHttpRequest(multiPresignedUrl multiPresignedUrl) []*uploadFile.MultiPresignedHTTPRequest {
+	presignedRequests := make([]*uploadFile.MultiPresignedHTTPRequest, 0, len(multiPresignedUrl.requests))
 	for _, request := range multiPresignedUrl.requests {
-		lotImagePresignedRequests = append(lotImagePresignedRequests, convertToLotImageMultiPresignedHttpRequest(request))
+		presignedRequests = append(presignedRequests, convertToMultiPresignedHttpRequest(request))
 	}
 
-	return lotImagePresignedRequests
+	return presignedRequests
 }
 
-func convertToUploadFiles(imageFiles []*uploadFile.File) []fileUploadData {
-	uploadFiles := make([]fileUploadData, 0, len(imageFiles))
-	for _, image := range imageFiles {
-		uploadFiles = append(uploadFiles, convertToUploadFile(image))
+func convertToUploadFiles(files []*uploadFile.File) []fileUploadData {
+	uploadFiles := make([]fileUploadData, 0, len(files))
+	for _, file := range files {
+		uploadFiles = append(uploadFiles, convertToUploadFile(file))
 	}
 
 	return uploadFiles
 }
 
-func convertToUploadFile(imageFile *uploadFile.File) fileUploadData {
+func convertToUploadFile(file *uploadFile.File) fileUploadData {
 	uploadFile := fileUploadData{
-		Sha256: *imageFile.Sha256,
-		// FileName:     *imageFile.FileName,
-		ClientFileId: strconv.Itoa(int(*imageFile.ClientFileId)),
-		FileSize:     uint(*imageFile.FileSize),
+		Sha256:       *file.Sha256,
+		ClientFileId: strconv.Itoa(int(*file.ClientFileId)),
+		FileSize:     uint(*file.FileSize),
 	}
 	return uploadFile
 }
 
-func convertToImageFiles(files []fileUploadData) ([]*uploadFile.File, error) {
-	imageFiles := make([]*uploadFile.File, 0, len(files))
+func convertToFile(files []fileUploadData) ([]*uploadFile.File, error) {
+	internalFiles := make([]*uploadFile.File, 0, len(files))
 	for _, file := range files {
-		iFile, err := convertToImageFile(file)
+		iFile, err := convertToInternalFile(file)
 		if err != nil {
 			return nil, err
 		}
-		imageFiles = append(imageFiles, iFile)
+		internalFiles = append(internalFiles, iFile)
 
 	}
 
-	return imageFiles, nil
+	return internalFiles, nil
 }
 
-func convertToImageFile(file fileUploadData) (*uploadFile.File, error) {
-	const operation apperror.Operation = "blobstore.convertToImageFile"
+func convertToInternalFile(file fileUploadData) (*uploadFile.File, error) {
+	const operation apperror.Operation = "blobstore.convertToInternalFile"
 	clientId, err := strconv.Atoi(file.ClientFileId)
 	if err != nil {
 		return nil, apperror.InternalServerError(operation, fmt.Errorf("cannot convert client file id %s to integer:%w", file.ClientFileId, err), "internal error").MarkAsClientErr()
 	}
-	imageFile := &uploadFile.File{
+	internalFile := &uploadFile.File{
 		Sha256: new(file.Sha256),
 		// FileName:     new(file.FileName),
 		ClientFileId: new(int32(clientId)),
 		FileSize:     new(uint64(file.FileSize)),
 	}
-	return imageFile, nil
+	return internalFile, nil
 }
 
 const bucketName = "arn:aws:s3:ap-south-1:433154991296:accesspoint/auction-lot-service-access-point"
 
-func NewImageStore(databaseConnection *pgx.Conn) *BlobStore {
+func NewBlobStore(databaseConnection *pgx.Conn) *BlobStore {
 	s3Storage, err := newS3Storage(bucketName)
 	if err != nil {
 		fmt.Println("Error creating s3Storage")

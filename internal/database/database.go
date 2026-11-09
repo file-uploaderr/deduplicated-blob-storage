@@ -62,7 +62,7 @@ var databaseConstraint = foreignKeyViolationMessage{
 	"lot_images_image_blob_id_fkey": []StorageField{
 		{
 			Subject:     "Storage",
-			Description: "image blob with given id does not exist",
+			Description: "file blob with given id does not exist",
 		},
 	},
 	// todo remove this table, "image_blobs"
