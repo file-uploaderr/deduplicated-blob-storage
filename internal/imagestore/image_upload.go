@@ -46,7 +46,7 @@ func newS3Storage(bucketName string) (*s3Storage, error) {
 	}, nil
 }
 
-type uploadFile struct {
+type fileUploadData struct {
 	Sha256 string
 	// FileName     string
 	ClientFileId string
@@ -80,14 +80,14 @@ type presignedUploadUrl struct {
 }
 
 type presignedFileUrl struct {
-	uploadFile
+	fileUploadData
 	presignedUploadUrl
 }
-type multiUploadFile = uploadFile
+type multiUploadFile = fileUploadData
 
-type singleUploadFile = uploadFile
+type singleUploadFile = fileUploadData
 
-func (s3Storage s3Storage) generateS3UploadUrl(ctx context.Context, files []uploadFile,
+func (s3Storage s3Storage) generateS3UploadUrl(ctx context.Context, files []fileUploadData,
 	uploadRoomId uint64, query *filestore.Queries,
 ) ([]presignedFileUrl, error) {
 	fileUploads := make([]presignedFileUrl, 0, len(files))
@@ -211,7 +211,7 @@ func (s3Storage s3Storage) createSinglePresignedFileUrl(ctx context.Context,
 			return nil, err
 		}
 		singlePresignedFileUrls = append(singlePresignedFileUrls, presignedFileUrl{
-			uploadFile:         singleUploadFile,
+			fileUploadData:     singleUploadFile,
 			presignedUploadUrl: presignedUploadUrl{Single: notMultipartFileUpload},
 		})
 
@@ -242,7 +242,7 @@ type extractFile struct {
 	multipartFile multipartFileData
 }
 
-func (s3Storage s3Storage) extractFileData(ctx context.Context, files []uploadFile) (extractFile, error) {
+func (s3Storage s3Storage) extractFileData(ctx context.Context, files []fileUploadData) (extractFile, error) {
 	const operation apperror.Operation = "fileupload.extractFileData"
 	singleFileUploads := make([]singleUploadFile, 0)
 
@@ -363,7 +363,7 @@ func generateUrlsForNewUploads(ctx context.Context, newMultiUploads []newMultipa
 		}
 
 		result = append(result, presignedFileUrl{
-			uploadFile: multiFileUploadMap[upload.sha256],
+			fileUploadData: multiFileUploadMap[upload.sha256],
 			presignedUploadUrl: presignedUploadUrl{Multi: multiPresignedUrl{
 				requests: newMultiParts,
 				partSize: upload.partSize, multipartAttemptId: upload.multipartAttemptId,
@@ -390,7 +390,7 @@ func genrateUrlsForResumableUploads(ctx context.Context, resumableMultiUploads [
 		}
 
 		result = append(result, presignedFileUrl{
-			uploadFile: multiFileUploadMap[upload.sha256],
+			fileUploadData: multiFileUploadMap[upload.sha256],
 			presignedUploadUrl: presignedUploadUrl{Multi: multiPresignedUrl{
 				requests: resumeMultiParts,
 				partSize: upload.partSize, multipartAttemptId: upload.multipartAttemptId,
@@ -548,13 +548,13 @@ func (s3Storage s3Storage) listNotUploadedParts(ctx context.Context, uploadIdent
 	return missingParts, uploadedPartsEtag, nil
 }
 
-type duplicateFile = uploadFile
+type duplicateFile = fileUploadData
 
 // todo duplicate files in batch upload are lost. Decide to keep or not to keep duplicate files.
-func intentBatchUpload(fileToUpload []uploadFile) ([]uploadFile, []duplicateFile) {
+func intentBatchUpload(fileToUpload []fileUploadData) ([]fileUploadData, []duplicateFile) {
 	isSeenFileMap := make(map[string]bool, len(fileToUpload))
 	var duplicateFiles []duplicateFile
-	var files []uploadFile
+	var files []fileUploadData
 
 	for _, v := range fileToUpload {
 
@@ -638,7 +638,7 @@ type uploadFileRequestResult struct {
 	presignedFileUrls    []presignedFileUrl
 }
 
-func (imageStore *ImageStore) initiateUpload(ctx context.Context, fileToUpload []uploadFile, uploadRoomId uint64) (uploadFileRequestResult, error) {
+func (imageStore *ImageStore) initiateUpload(ctx context.Context, fileToUpload []fileUploadData, uploadRoomId uint64) (uploadFileRequestResult, error) {
 	const operation apperror.Operation = "imageStore.initiateUpload"
 	files, duplicateFiles := intentBatchUpload(fileToUpload)
 	// uploadRoomId,ok:=new(big.Int).SetString(uploadRoomIdString,10)
@@ -680,14 +680,14 @@ func (imageStore *ImageStore) initiateUpload(ctx context.Context, fileToUpload [
 	}, nil
 }
 
-type alreadyUploadedFile = uploadFile
+type alreadyUploadedFile = fileUploadData
 
-func skipUploadForIdenticalImageBlobs(ctx context.Context, files []uploadFile, uploadRoomId uint64, query *filestore.Queries) ([]uploadFile, []alreadyUploadedFile, error) {
+func skipUploadForIdenticalImageBlobs(ctx context.Context, files []fileUploadData, uploadRoomId uint64, query *filestore.Queries) ([]fileUploadData, []alreadyUploadedFile, error) {
 	const operation apperror.Operation = "imagestore.skipUploadForIdenticalImageBlobs"
 	sha256s := make([]string, 0, len(files))
 	// fileNames := make([]string, 0, len(files))
 
-	fileMap := make(map[string]uploadFile, len(files))
+	fileMap := make(map[string]fileUploadData, len(files))
 	for _, f := range files {
 		sha256s = append(sha256s, f.Sha256)
 		// fileNames = append(fileNames, f.FileName)
@@ -727,9 +727,9 @@ func skipUploadForIdenticalImageBlobs(ctx context.Context, files []uploadFile, u
 	return needToBeUploadedFiles, alreadyUploadedFiles, nil
 }
 
-func separateUploadedAndNeedToBeUploadedFiles(fileMap map[string]uploadFile, existingFileMap map[string]string) ([]uploadFile, []alreadyUploadedFile) {
+func separateUploadedAndNeedToBeUploadedFiles(fileMap map[string]fileUploadData, existingFileMap map[string]string) ([]fileUploadData, []alreadyUploadedFile) {
 	var alreadyUploadedFiles []alreadyUploadedFile
-	var needToBeUploadedFiles []uploadFile
+	var needToBeUploadedFiles []fileUploadData
 	for _, file := range fileMap {
 		if _, ok := existingFileMap[file.Sha256]; ok {
 			alreadyUploadedFiles = append(alreadyUploadedFiles, file)

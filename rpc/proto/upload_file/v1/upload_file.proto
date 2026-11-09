@@ -1,10 +1,10 @@
 edition = "2023";
 
-package lot_image.v1;
+package upload_file.v1;
 
 import "buf/validate/validate.proto";
 
-option go_package = ".;lotimage";
+option go_package = ".;uploadFile";
 
 message File {
   string sha256 = 1 [

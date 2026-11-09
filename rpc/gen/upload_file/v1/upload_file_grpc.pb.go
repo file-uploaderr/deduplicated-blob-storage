@@ -2,9 +2,9 @@
 // versions:
 // - protoc-gen-go-grpc v1.5.1
 // - protoc             (unknown)
-// source: lot_image/v1/lot_image.proto
+// source: upload_file/v1/upload_file.proto
 
-package lotimage
+package uploadFile
 
 import (
 	context "context"
@@ -19,8 +19,8 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	FileUploadService_GeneratePresignedUrl_FullMethodName    = "/lot_image.v1.FileUploadService/GeneratePresignedUrl"
-	FileUploadService_CompleteMultiPartUpload_FullMethodName = "/lot_image.v1.FileUploadService/CompleteMultiPartUpload"
+	FileUploadService_GeneratePresignedUrl_FullMethodName    = "/upload_file.v1.FileUploadService/GeneratePresignedUrl"
+	FileUploadService_CompleteMultiPartUpload_FullMethodName = "/upload_file.v1.FileUploadService/CompleteMultiPartUpload"
 )
 
 // FileUploadServiceClient is the client API for FileUploadService service.
@@ -142,7 +142,7 @@ func _FileUploadService_CompleteMultiPartUpload_Handler(srv interface{}, ctx con
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
 var FileUploadService_ServiceDesc = grpc.ServiceDesc{
-	ServiceName: "lot_image.v1.FileUploadService",
+	ServiceName: "upload_file.v1.FileUploadService",
 	HandlerType: (*FileUploadServiceServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
@@ -155,5 +155,5 @@ var FileUploadService_ServiceDesc = grpc.ServiceDesc{
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
-	Metadata: "lot_image/v1/lot_image.proto",
+	Metadata: "upload_file/v1/upload_file.proto",
 }

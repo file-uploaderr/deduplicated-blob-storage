@@ -1,0 +1,28 @@
+edition = "2023";
+
+package upload_room.v1;
+
+import "buf/validate/validate.proto";
+
+option go_package = ".;uploadRoom";
+
+message UploadRoom {
+  string title = 1 [
+    (buf.validate.field).string.min_len = 1,
+    (buf.validate.field).required = true
+  ];
+  string description = 2 [(buf.validate.field).string.min_len = 1];
+}
+
+service UploadRoomService {
+  rpc CreateRoom(CreateRoomRequest) returns (CreateRoomResponse);
+}
+
+message CreateRoomResponse {
+  uint64 upload_room_id = 3;
+  reserved 1, 2;
+}
+
+message CreateRoomRequest {
+  UploadRoom room = 1;
+}
