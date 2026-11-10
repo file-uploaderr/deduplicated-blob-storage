@@ -150,7 +150,7 @@ func (s3Storage s3Storage) createMultipartPresignedFileUrl(ctx context.Context,
 		}
 		return nil, apperror.PreconditionFailedError(operation, apperror.ErrDetails{
 			Fields:  dberrorbridge.ConvertToFieldErr(errFields),
-			Message: "unknown lotId",
+			Message: "unknown upload room ID",
 		}, err).MarkAsClientErr()
 	}
 

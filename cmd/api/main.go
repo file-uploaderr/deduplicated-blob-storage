@@ -33,15 +33,15 @@ func main() {
 }
 
 type Rpc struct {
-	lotServer *server.LotServer
-	blobStore *blobstore.BlobStore
+	uploadRoom *server.UploadRoom
+	blobStore  *blobstore.BlobStore
 }
 
 func createRpc() Rpc {
 	databaseConnection := database.ConnectToDB()
 	rpc := Rpc{
-		lotServer: server.NewLotServer(databaseConnection),
-		blobStore: blobstore.NewBlobStore(databaseConnection),
+		uploadRoom: server.NewUploadRoom(databaseConnection),
+		blobStore:  blobstore.NewBlobStore(databaseConnection),
 	}
 	return rpc
 }
@@ -65,7 +65,7 @@ func Run(port int, rpc Rpc) error {
 	}
 
 	grpcServer := grpc.NewServer(opts...)
-	uploadRoom.RegisterUploadRoomServiceServer(grpcServer, rpc.lotServer)
+	uploadRoom.RegisterUploadRoomServiceServer(grpcServer, rpc.uploadRoom)
 	uploadFile.RegisterFileUploadServiceServer(grpcServer, rpc.blobStore)
 
 	fmt.Println("Listening...")

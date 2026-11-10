@@ -11,13 +11,13 @@ import (
 	"github.com/jackc/pgx/v5"
 )
 
-type LotServer struct {
+type UploadRoom struct {
 	uploadRoom.UnimplementedUploadRoomServiceServer
 	dbStorageQuery *filestore.Queries
 	conn           *pgx.Conn
 }
 
-func (s *LotServer) CreateRoom(ctx context.Context, req *uploadRoom.CreateRoomRequest) (*uploadRoom.CreateRoomResponse, error) {
+func (s *UploadRoom) CreateRoom(ctx context.Context, req *uploadRoom.CreateRoomRequest) (*uploadRoom.CreateRoomResponse, error) {
 	const operation apperror.Operation = "server.CreateRoom"
 	// todo make upload room title unique
 	id, err := s.dbStorageQuery.CreateUploadRoom(ctx, filestore.CreateUploadRoomParams{Title: *req.Room.Title, Description: req.Room.Description})
@@ -28,8 +28,8 @@ func (s *LotServer) CreateRoom(ctx context.Context, req *uploadRoom.CreateRoomRe
 	return &uploadRoom.CreateRoomResponse{UploadRoomId: aws.Uint64(uint64(id))}, nil
 }
 
-func NewLotServer(databaseConnection *pgx.Conn) *LotServer {
-	return &LotServer{
+func NewUploadRoom(databaseConnection *pgx.Conn) *UploadRoom {
+	return &UploadRoom{
 		dbStorageQuery: filestore.New(databaseConnection),
 		conn:           databaseConnection,
 	}
