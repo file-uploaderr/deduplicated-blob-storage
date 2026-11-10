@@ -136,7 +136,6 @@ func toGRPCError(err error) error {
 		return status.Error(codes.Canceled, "request cancelled")
 	}
 
-	// todo refactor
 	appError := createErr(err)
 	// todo add logging
 	fmt.Println(appError)

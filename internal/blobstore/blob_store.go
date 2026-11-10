@@ -222,8 +222,7 @@ func convertToInternalFile(file fileUploadData) (*uploadFile.File, error) {
 		return nil, apperror.InternalServerError(operation, fmt.Errorf("cannot convert client file id %s to integer:%w", file.ClientFileId, err), "internal error").MarkAsClientErr()
 	}
 	internalFile := &uploadFile.File{
-		Sha256: new(file.Sha256),
-		// FileName:     new(file.FileName),
+		Sha256:       new(file.Sha256),
 		ClientFileId: new(int32(clientId)),
 		FileSize:     new(uint64(file.FileSize)),
 	}
