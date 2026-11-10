@@ -19,6 +19,7 @@ type LotServer struct {
 
 func (s *LotServer) CreateRoom(ctx context.Context, req *uploadRoom.CreateRoomRequest) (*uploadRoom.CreateRoomResponse, error) {
 	const operation apperror.Operation = "server.CreateRoom"
+	// todo make upload room title unique
 	id, err := s.dbStorageQuery.CreateUploadRoom(ctx, filestore.CreateUploadRoomParams{Title: *req.Room.Title, Description: req.Room.Description})
 	if err != nil {
 		return nil, apperror.InternalServerError(operation, fmt.Errorf("creation of upload room failed,%w", err), "internal error").MarkAsClientErr()
