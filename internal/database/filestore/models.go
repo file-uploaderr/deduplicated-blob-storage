@@ -102,7 +102,7 @@ type FileStoreUploadRoom struct {
 	ID          int64
 }
 
-type UploadConfigImageBlobUploadAttempt struct {
+type UploadConfigBlobUploadAttempt struct {
 	ID               int64
 	Sha256           []byte
 	FileSize         int64

@@ -2,7 +2,7 @@ create type  upload_config.upload_attempt_state as enum('pending','committed');
 
 create type upload_config.upload_type as enum('multiUpload','singleUpload');
 
-create table if not exists upload_config.image_blob_upload_attempts(id bigint generated always as identity primary key,
+create table if not exists upload_config.blob_upload_attempts(id bigint generated always as identity primary key,
 sha256 bytea not null,
 file_size bigint not null,
 upload_type upload_config.upload_type not null,

@@ -1,12 +1,12 @@
 
 -- name: RetrieveIdenticalBlobs :many
-select encode(sha256,'hex') sha256 from upload_config.image_blob_upload_attempts where sha256 = any(select decode(h.sha256,'hex') from unnest(
+select encode(sha256,'hex') sha256 from upload_config.blob_upload_attempts where sha256 = any(select decode(h.sha256,'hex') from unnest(
 @sha256s::char(64)[]) h(sha256)) and verified=true;
 
 
 
 -- name: InsertSinglePartUpload :many
-INSERT INTO upload_config.image_blob_upload_attempts
+INSERT INTO upload_config.blob_upload_attempts
             (
                         sha256,
                         file_size,
@@ -22,13 +22,13 @@ SELECT Decode(i.sha256,'hex'),
 FROM   unnest( @sha256s::char(64)[],@file_sizes::bigint[]) i(sha256,file_size)
 ON conflict (sha256,upload_room_id)
 WHERE  upload_state='pending'
-do update  set storage_key=image_blob_upload_attempts.storage_key returning encode(sha256, 'hex') sha256,storage_key,(old is null)::boolean as is_inserted;
+do update  set storage_key=blob_upload_attempts.storage_key returning encode(sha256, 'hex') sha256,storage_key,(old is null)::boolean as is_inserted;
 
 
 
 
 -- name: InsertAndValidateMultiPartUpload :many
-insert into upload_config.image_blob_upload_attempts(
+insert into upload_config.blob_upload_attempts(
   sha256, file_size, upload_type, 
   upload_id, part_size, upload_room_id, 
   uploader_identity, storage_key
@@ -54,8 +54,8 @@ where
   upload_state = 'pending' do 
 update 
 set 
-  part_size = case when image_blob_upload_attempts.valid_until >= transaction_timestamp() then image_blob_upload_attempts.part_size else @part_size :: bigint end, 
-  valid_until = case when image_blob_upload_attempts.valid_until >= transaction_timestamp() then image_blob_upload_attempts.valid_until else transaction_timestamp()+ interval '5 days' end 
+  part_size = case when blob_upload_attempts.valid_until >= transaction_timestamp() then blob_upload_attempts.part_size else @part_size :: bigint end, 
+  valid_until = case when blob_upload_attempts.valid_until >= transaction_timestamp() then blob_upload_attempts.valid_until else transaction_timestamp()+ interval '5 days' end 
 returning 
   part_size, 
   id, 
@@ -71,7 +71,7 @@ coalesce(old.valid_until >=Now(),false)::boolean as is_valid;
 
 
 -- name: GetMultiPartUploadItem :one
-select upload_id,storage_key,part_count,id from upload_config.image_blob_upload_attempts where id= sqlc.arg(multipart_attempt_id);
+select upload_id,storage_key,part_count,id from upload_config.blob_upload_attempts where id= sqlc.arg(multipart_attempt_id);
 
 
 

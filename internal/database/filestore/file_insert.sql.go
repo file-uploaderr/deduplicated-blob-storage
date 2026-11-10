@@ -12,7 +12,7 @@ import (
 )
 
 const getMultiPartUploadItem = `-- name: GetMultiPartUploadItem :one
-select upload_id,storage_key,part_count,id from upload_config.image_blob_upload_attempts where id= $1
+select upload_id,storage_key,part_count,id from upload_config.blob_upload_attempts where id= $1
 `
 
 type GetMultiPartUploadItemRow struct {
@@ -35,7 +35,7 @@ func (q *Queries) GetMultiPartUploadItem(ctx context.Context, multipartAttemptID
 }
 
 const insertAndValidateMultiPartUpload = `-- name: InsertAndValidateMultiPartUpload :many
-insert into upload_config.image_blob_upload_attempts(
+insert into upload_config.blob_upload_attempts(
   sha256, file_size, upload_type, 
   upload_id, part_size, upload_room_id, 
   uploader_identity, storage_key
@@ -61,8 +61,8 @@ where
   upload_state = 'pending' do 
 update 
 set 
-  part_size = case when image_blob_upload_attempts.valid_until >= transaction_timestamp() then image_blob_upload_attempts.part_size else $2 :: bigint end, 
-  valid_until = case when image_blob_upload_attempts.valid_until >= transaction_timestamp() then image_blob_upload_attempts.valid_until else transaction_timestamp()+ interval '5 days' end 
+  part_size = case when blob_upload_attempts.valid_until >= transaction_timestamp() then blob_upload_attempts.part_size else $2 :: bigint end, 
+  valid_until = case when blob_upload_attempts.valid_until >= transaction_timestamp() then blob_upload_attempts.valid_until else transaction_timestamp()+ interval '5 days' end 
 returning 
   part_size, 
   id, 
@@ -138,7 +138,7 @@ func (q *Queries) InsertAndValidateMultiPartUpload(ctx context.Context, arg Inse
 }
 
 const insertSinglePartUpload = `-- name: InsertSinglePartUpload :many
-INSERT INTO upload_config.image_blob_upload_attempts
+INSERT INTO upload_config.blob_upload_attempts
             (
                         sha256,
                         file_size,
@@ -154,7 +154,7 @@ SELECT Decode(i.sha256,'hex'),
 FROM   unnest( $4::char(64)[],$5::bigint[]) i(sha256,file_size)
 ON conflict (sha256,upload_room_id)
 WHERE  upload_state='pending'
-do update  set storage_key=image_blob_upload_attempts.storage_key returning encode(sha256, 'hex') sha256,storage_key,(old is null)::boolean as is_inserted
+do update  set storage_key=blob_upload_attempts.storage_key returning encode(sha256, 'hex') sha256,storage_key,(old is null)::boolean as is_inserted
 `
 
 type InsertSinglePartUploadParams struct {
@@ -198,7 +198,7 @@ func (q *Queries) InsertSinglePartUpload(ctx context.Context, arg InsertSinglePa
 }
 
 const retrieveIdenticalBlobs = `-- name: RetrieveIdenticalBlobs :many
-select encode(sha256,'hex') sha256 from upload_config.image_blob_upload_attempts where sha256 = any(select decode(h.sha256,'hex') from unnest(
+select encode(sha256,'hex') sha256 from upload_config.blob_upload_attempts where sha256 = any(select decode(h.sha256,'hex') from unnest(
 $1::char(64)[]) h(sha256)) and verified=true
 `
 

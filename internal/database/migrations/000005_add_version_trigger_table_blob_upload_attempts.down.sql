@@ -1,0 +1,1 @@
+drop trigger if exists bump_row_version_table_blob_upload_attempts on upload_config.blob_upload_attempts restrict;

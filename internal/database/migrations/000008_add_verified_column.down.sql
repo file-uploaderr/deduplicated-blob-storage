@@ -1,1 +1,1 @@
-alter table upload_config.image_blob_upload_attempts drop column if exists verified restrict;
+alter table upload_config.blob_upload_attempts drop column if exists verified restrict;

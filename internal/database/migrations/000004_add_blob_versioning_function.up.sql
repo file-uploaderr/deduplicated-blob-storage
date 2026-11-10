@@ -1,4 +1,4 @@
-create or replace function upload_config.bump_row_version_table_image_blob_upload_attempts() 
+create or replace function upload_config.bump_row_version_table_blob_upload_attempts() 
 returns trigger
 language plpgsql
 as 
