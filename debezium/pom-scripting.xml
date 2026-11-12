@@ -1,0 +1,50 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+  <groupId>local</groupId>
+  <artifactId>debezium-scripting-deps</artifactId>
+  <version>1</version>
+  <packaging>pom</packaging>
+
+  <properties>
+    <graal.version>25.0.2</graal.version>
+  </properties>
+
+  <dependencies>
+    <dependency>
+      <groupId>io.debezium</groupId>
+      <artifactId>debezium-scripting</artifactId>
+      <version>3.7.0.Final</version>
+      <!-- already provided by the connector plugin dir / Connect runtime -->
+      <exclusions>
+        <exclusion><groupId>io.debezium</groupId><artifactId>debezium-core</artifactId></exclusion>
+        <exclusion><groupId>io.debezium</groupId><artifactId>debezium-api</artifactId></exclusion>
+        <exclusion><groupId>org.apache.kafka</groupId><artifactId>connect-api</artifactId></exclusion>
+        <exclusion><groupId>org.apache.kafka</groupId><artifactId>connect-transforms</artifactId></exclusion>
+        <exclusion><groupId>org.apache.kafka</groupId><artifactId>kafka-clients</artifactId></exclusion>
+        <exclusion><groupId>org.slf4j</groupId><artifactId>slf4j-api</artifactId></exclusion>
+      </exclusions>
+    </dependency>
+
+    <!-- GraalJS (community edition) via the polyglot API -->
+    <dependency>
+      <groupId>org.graalvm.polyglot</groupId>
+      <artifactId>polyglot</artifactId>
+      <version>${graal.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.graalvm.polyglot</groupId>
+      <artifactId>js-community</artifactId>
+      <version>${graal.version}</version>
+      <type>pom</type>
+    </dependency>
+
+    <!-- JSR 223 wrapper: this is what registers the "graal.js" engine name -->
+    <dependency>
+      <groupId>org.graalvm.js</groupId>
+      <artifactId>js-scriptengine</artifactId>
+      <version>${graal.version}</version>
+    </dependency>
+  </dependencies>
+</project>
